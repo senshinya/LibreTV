@@ -248,6 +248,32 @@
         let adFilteringEnabled = true; // 默认开启广告过滤
         let progressSaveInterval = null; // 定期保存进度的计时器
 
+        let nativeHlsSupported = false;
+        let isSafari = false;
+        let airPlayAvailable = false;
+
+        // 检测浏览器类型和功能支持
+        function detectBrowserCapabilities() {
+            // 检测是否为 Safari 浏览器
+            isSafari = /^((?!chrome|android).)*safari/i.test(navigator.userAgent);
+            
+            // 创建测试视频元素
+            const video = document.createElement('video');
+            
+            // 检查是否支持 HLS
+            const canPlay = video.canPlayType('application/vnd.apple.mpegurl');
+            nativeHlsSupported = (canPlay === 'probably' || canPlay === 'maybe');
+            
+            // 检查是否支持 AirPlay (仅在 Safari 中可用)
+            airPlayAvailable = isSafari && 'webkitShowPlaybackTargetPicker' in video;
+            
+            console.log('浏览器检测结果:', {
+                isSafari,
+                nativeHlsSupported,
+                airPlayAvailable
+            });
+        }
+
         // 页面加载
         document.addEventListener('DOMContentLoaded', function() {
             // 解析URL参数
@@ -415,6 +441,8 @@
         function initPlayer(videoUrl) {
             if (!videoUrl) return;
 
+            detectBrowserCapabilities();
+
             // 配置HLS.js选项
             const hlsConfig = {
                 debug: false,
@@ -445,7 +473,8 @@
             };
             
             // 创建DPlayer实例
-            dp = new DPlayer({
+
+            const options = {
                 container: document.getElementById('player'),
                 autoplay: true,
                 theme: '#00ccff',
@@ -473,9 +502,13 @@
                 ],
                 video: {
                     url: videoUrl,
-                    type: 'customHls',
-                    pic: 'https://img.picgo.net/2025/04/12/image362e7d38b4af4a74.png', // 设置视频封面图
-                    customType: {
+                    type: 'auto',
+                    pic: 'https://img.picgo.net/2025/04/12/image362e7d38b4af4a74.png'
+                }
+            };
+            if (!) {
+                options.video.type = 'customHls';
+                options.video.customType = {
                         customHls: function(video, player) {
                             // 清理之前的HLS实例
                             if (currentHls && currentHls.destroy) {
@@ -582,9 +615,9 @@
                                 document.getElementById('loading').style.display = 'none';
                             });
                         }
-                    }
-                }
-            });
+                    };
+            }
+            dp = new DPlayer(options);
 
             // airplay
             dp.video.setAttribute('x-webkit-airplay', 'allow');
