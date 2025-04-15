@@ -585,6 +585,11 @@
                     }
                 }
             });
+
+            // airplay
+            dp.video.setAttribute('x-webkit-airplay', 'allow');
+            dp.video.setAttribute('playsinline', 'true');
+            
             // 全屏模式下锁定横屏
             dp.on('fullscreen', () => {
                 if (window.screen.orientation && window.screen.orientation.lock) {
