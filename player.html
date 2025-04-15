@@ -513,7 +513,8 @@
                                     document.getElementById('error').style.display = 'none';
                                 }
                             });
-                            
+
+                            console.log(video.src);
                             hls.loadSource(video.src);
                             hls.attachMedia(video);
                             
