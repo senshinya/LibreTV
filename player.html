@@ -249,13 +249,12 @@
         let progressSaveInterval = null; // 定期保存进度的计时器
 
         let nativeHlsSupported = false;
-        let isSafari = false;
         let airPlayAvailable = false;
 
         // 检测浏览器类型和功能支持
         function detectBrowserCapabilities() {
             // 检测是否为 Safari 浏览器
-            isSafari = /^((?!chrome|android).)*safari/i.test(navigator.userAgent);
+            const isSafari = /^((?!chrome|android).)*safari/i.test(navigator.userAgent);
             
             // 创建测试视频元素
             const video = document.createElement('video');
@@ -268,7 +267,6 @@
             airPlayAvailable = isSafari && 'webkitShowPlaybackTargetPicker' in video;
             
             console.log('浏览器检测结果:', {
-                isSafari,
                 nativeHlsSupported,
                 airPlayAvailable
             });
@@ -486,7 +484,7 @@
                 volume: 0.7,
                 screenshot: true,                // 启用截图功能
                 preventClickToggle: false,       // 允许点击视频切换播放/暂停
-                airplay: true,                   // 在Safari中启用AirPlay功能
+                airplay: airPlayAvailable,       // 在Safari中启用AirPlay功能
                 chromecast: true,                // 启用Chromecast投屏功能
                 contextmenu: [                   // 自定义右键菜单
                     {
