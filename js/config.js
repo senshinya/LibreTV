@@ -47,10 +47,6 @@ const API_SITES = {
         api: 'https://cjhwba.com',
         name: '新华为',
     },
-    hwba: {
-        api: 'https://cjwba.com',
-        name: '华为吧资源',
-    },
     jisu: {
         api: 'https://jszyapi.com',
         name: '极速资源',
@@ -112,6 +108,10 @@ const API_SITES = {
         name: '黄色仓库',
         adult: true,
         detail: 'https://hsckzy.vip' // 添加detail URL以便特殊处理
+    },
+    lzizy: {
+        api: 'https://lzizy.net',
+        name: '量子影视'
     }
 };
 
