@@ -110,7 +110,7 @@ const API_SITES = {
         detail: 'https://hsckzy.vip' // 添加detail URL以便特殊处理
     },
     lzizy: {
-        api: 'https://lzizy.net',
+        api: 'https://cj.lziapi.com',
         name: '量子影视'
     }
 };
