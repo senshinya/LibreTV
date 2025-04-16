@@ -173,7 +173,7 @@
                     <svg class="w-10 h-10 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 10l4.553-2.276A1 1 0 0121 8.618v6.764a1 1 0 01-1.447.894L15 14M5 18h8a2 2 0 002-2V8a2 2 0 00-2-2H5a2 2 0 00-2 2v8a2 2 0 002 2z"></path>
                     </svg>
-                    <h1 class="text-5xl font-bold gradient-text">LibreTV</h1>
+                    <h1 style="cursor:pointer;" onclick="resetSearchArea()" class="text-5xl font-bold gradient-text">LibreTV</h1>
                 </div>
                 <p class="text-gray-400 mb-8">自由观影，畅享精彩</p>
             </header>
@@ -189,7 +189,7 @@
                                placeholder="搜索你喜欢的视频..."
                                aria-label="视频搜索框">
                         <button onclick="search()" 
-                                class="px-8 py-4 bg-white text-black font-medium rounded-r-lg hover:bg-gray-200 transition-colors"
+                                class="px-8 py-4 bg-white text-black font-medium rounded-r-lg hover:bg-gray-200 transition-colors whitespace-nowrap"
                                 aria-label="搜索按钮">
                             搜索
                         </button>
@@ -200,6 +200,14 @@
                         <!-- 这里会动态插入最近的搜索记录 -->
                     </div>
                     <!-- 清除历史按钮已移至搜索历史标题行 -->
+                </div>
+            </div>
+            
+            <!-- 添加豆瓣榜单区域 -->
+            <div id="doubanRankings" class="mt-8 w-full max-w-6xl mx-auto">
+                <!-- <h3 class="text-2xl font-bold gradient-text mb-4 text-center">豆瓣热门榜单</h3> -->
+                <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
+                    <!-- 榜单将在这里动态加载 -->
                 </div>
             </div>
             
@@ -327,7 +335,7 @@
                 
                 // 添加接受按钮事件
                 document.getElementById('acceptDisclaimerBtn').addEventListener('click', function() {
-                    // 保存用户已看过声明的状态
+                    // 保存用户已观看声明的状态
                     localStorage.setItem('hasSeenDisclaimer', 'true');
                     // 隐藏弹窗
                     disclaimerModal.style.display = 'none';

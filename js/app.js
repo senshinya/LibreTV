@@ -11,6 +11,62 @@ let currentVideoTitle = '';
 // 全局变量用于倒序状态
 let episodesReversed = false;
 
+// 豆瓣榜单URL列表
+const DOUBAN_RANKINGS = [
+    {
+        title: "每月推荐电影",
+        url: "https://douban-api.shinya.click/recommended_movie"
+    },
+    {
+        title: "每周推荐剧集",
+        url: "https://douban-api.shinya.click/recommended_tv"
+    },
+    {
+        title: "影院热映",
+        url: "https://douban-api.shinya.click/movie_showing"
+    },
+    {
+        title: "实时热门电影",
+        url: "https://douban-api.shinya.click/movie_real_time_hotest"
+    },
+    {
+        title: "实时热门电视",
+        url: "https://douban-api.shinya.click/tv_real_time_hotest"
+    },
+    {
+        title: "一周口碑电影榜",
+        url: "https://douban-api.shinya.click/movie_weekly_best"
+    },
+    {
+        title: "华语口碑剧集榜",
+        url: "https://douban-api.shinya.click/tv_chinese_best_weekly"
+    },
+    {
+        title: "全球口碑剧集榜",
+        url: "https://douban-api.shinya.click/tv_global_best_weekly"
+    }
+    // {
+    //     title: "热播新剧国产剧",
+    //     url: "https://douban-api.shinya.click/tv_domestic"
+    // },
+    // {
+    //     title: "热播新剧欧美剧",
+    //     url: "https://douban-api.shinya.click/tv_american"
+    // },
+    // {
+    //     title: "热播新剧日剧",
+    //     url: "https://douban-api.shinya.click/tv_japanese"
+    // },
+    // {
+    //     title: "热播新剧韩剧",
+    //     url: "https://douban-api.shinya.click/tv_korean"
+    // },
+    // {
+    //     title: "热播新剧动画",
+    //     url: "https://douban-api.shinya.click/tv_animation"
+    // }
+];
+
 // 页面初始化
 document.addEventListener('DOMContentLoaded', function() {
     // 初始化API复选框
@@ -24,6 +80,9 @@ document.addEventListener('DOMContentLoaded', function() {
     
     // 渲染搜索历史
     renderSearchHistory();
+    
+    // 加载豆瓣榜单
+    loadDoubanRankings();
     
     // 设置默认API选择（如果是第一次加载）
     if (!localStorage.getItem('hasInitializedDefaults')) {
@@ -57,6 +116,123 @@ document.addEventListener('DOMContentLoaded', function() {
     // 初始检查成人API选中状态
     setTimeout(checkAdultAPIsSelected, 100);
 });
+
+// 加载豆瓣榜单
+async function loadDoubanRankings() {
+    const rankingsContainer = document.querySelector('#doubanRankings .grid');
+    if (!rankingsContainer) return;
+    
+    // 清空容器
+    rankingsContainer.innerHTML = '';
+    
+    // 为每个榜单创建占位容器
+    DOUBAN_RANKINGS.forEach((ranking, index) => {
+        const rankingElement = document.createElement('div');
+        rankingElement.className = 'bg-[#111] rounded-lg p-4 shadow-lg';
+        rankingElement.id = `ranking-${index}`;
+        
+        // 添加骨架屏
+        rankingElement.innerHTML = `
+            <h4 class="text-lg font-semibold mb-3 text-center">${ranking.title}</h4>
+            <div class="grid grid-cols-3 gap-2">
+                ${Array(9).fill(0).map(() => `
+                    <div class="animate-pulse">
+                        <div class="aspect-[2/3] bg-gray-700 rounded-lg"></div>
+                        <div class="mt-1 h-3 bg-gray-700 rounded w-3/4 mx-auto"></div>
+                    </div>
+                `).join('')}
+            </div>
+        `;
+        
+        rankingsContainer.appendChild(rankingElement);
+        
+        // 异步加载每个榜单
+        loadSingleRanking(ranking, index);
+    });
+}
+
+// 加载单个榜单
+async function loadSingleRanking(ranking, index) {
+    try {
+        const response = await fetch(ranking.url);
+        const data = await response.json();
+        
+        // 获取榜单容器
+        const rankingElement = document.getElementById(`ranking-${index}`);
+        if (!rankingElement) return;
+        
+        // 保留标题
+        const title = ranking.title;
+        
+        // 创建电影列表
+        const moviesList = document.createElement('div');
+        moviesList.className = 'grid grid-cols-3 gap-2';
+        
+        // 最多显示9部电影
+        const moviesToShow = data.items?.slice(0, 9) || [];
+        
+        moviesToShow.forEach(movie => {
+            const movieCard = document.createElement('div');
+            movieCard.className = 'relative cursor-pointer transition-transform hover:scale-105';
+            movieCard.setAttribute('data-title', movie.title);
+            movieCard.setAttribute('data-description', movie.description || '');
+            
+            // 添加点击事件，将电影名称填入搜索框并发起搜索
+            movieCard.addEventListener('click', () => {
+                const searchInput = document.getElementById('searchInput');
+                if (searchInput) {
+                    searchInput.value = movie.title;
+                    search();
+                }
+            });
+            
+            // 电影海报
+            const posterUrl = movie.posterUrl || 'https://via.placeholder.com/150x225?text=无封面';
+            movieCard.innerHTML = `
+                <div class="aspect-[2/3] overflow-hidden rounded-lg">
+                    <img src="${posterUrl}" alt="${movie.title}" 
+                         class="w-full h-full object-cover" 
+                         onerror="this.onerror=null; this.src='https://via.placeholder.com/150x225?text=无封面';">
+                </div>
+                <div class="mt-1 text-center">
+                    <p class="text-xs truncate" title="${movie.title}">${movie.title}</p>
+                </div>
+                <div class="absolute inset-0 bg-black bg-opacity-80 opacity-0 hover:opacity-100 transition-opacity flex items-center justify-center p-2 rounded-lg">
+                    <p class="text-xs text-center text-white">${movie.description || movie.title}</p>
+                </div>
+            `;
+            
+            moviesList.appendChild(movieCard);
+        });
+        
+        // 更新榜单内容
+        rankingElement.innerHTML = '';
+        
+        // 添加榜单标题
+        const titleElement = document.createElement('h4');
+        titleElement.className = 'text-lg font-semibold mb-3 text-center';
+        titleElement.textContent = title;
+        rankingElement.appendChild(titleElement);
+        
+        // 添加电影列表
+        rankingElement.appendChild(moviesList);
+        
+    } catch (error) {
+        console.error(`获取榜单 ${ranking.title} 失败:`, error);
+        
+        // 获取榜单容器
+        const rankingElement = document.getElementById(`ranking-${index}`);
+        if (!rankingElement) return;
+        
+        // 显示错误信息
+        rankingElement.innerHTML = `
+            <h4 class="text-lg font-semibold mb-3 text-center">${ranking.title}</h4>
+            <div class="text-center py-4">
+                <p class="text-gray-400">获取榜单数据失败，请稍后再试</p>
+            </div>
+        `;
+    }
+}
 
 // 初始化API复选框
 function initAPICheckboxes() {
@@ -547,6 +723,12 @@ function resetSearchArea() {
     document.getElementById('searchArea').classList.add('flex-1');
     document.getElementById('searchArea').classList.remove('mb-8');
     document.getElementById('resultsArea').classList.add('hidden');
+
+    // 显示豆瓣榜单区域
+    const doubanRankings = document.getElementById('doubanRankings');
+    if (doubanRankings) {
+        doubanRankings.classList.remove('hidden');
+    }
     
     // 确保页脚正确显示，移除相对定位
     const footer = document.querySelector('.footer');
@@ -583,6 +765,12 @@ async function search() {
     try {
         // 保存搜索历史
         saveSearchHistory(query);
+
+        // 隐藏豆瓣榜单区域
+        const doubanRankings = document.getElementById('doubanRankings');
+        if (doubanRankings) {
+            doubanRankings.classList.add('hidden');
+        }
         
         // 从所有选中的API源搜索
         let allResults = [];
@@ -686,7 +874,6 @@ async function search() {
 
         // 添加XSS保护，使用textContent和属性转义
         resultsDiv.innerHTML = allResults.map(item => {
-            // ...existing code for rendering results...
             const safeId = item.vod_id ? item.vod_id.toString().replace(/[^\w-]/g, '') : '';
             const safeName = (item.vod_name || '').toString()
                 .replace(/</g, '&lt;')

@@ -762,3 +762,33 @@ body {
     opacity: 1;
     transform: translateX(-50%) translateY(0);
 }
+
+#doubanRankings .grid {
+    transition: all 0.3s ease;
+}
+
+#doubanRankings .aspect-\[2\/3\] {
+    box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+    transition: all 0.3s ease;
+}
+
+#doubanRankings .aspect-\[2\/3\]:hover {
+    box-shadow: 0 10px 15px rgba(0, 0, 0, 0.2);
+}
+
+/* 榜单标题样式 */
+#doubanRankings h4 {
+    position: relative;
+    display: inline-block;
+    padding-bottom: 8px;
+}
+
+#doubanRankings h4:after {
+    content: '';
+    position: absolute;
+    bottom: 0;
+    left: 25%;
+    width: 50%;
+    height: 2px;
+    background: linear-gradient(to right, #6366f1, #a855f7, #ec4899);
+}
