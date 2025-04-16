@@ -18,7 +18,7 @@ const DOUBAN_RANKINGS = [
         url: "https://douban-api.shinya.click/recommended_movie"
     },
     {
-        title: "每周推荐剧集",
+        title: "每月推荐剧集",
         url: "https://douban-api.shinya.click/recommended_tv"
     },
     {
@@ -30,7 +30,7 @@ const DOUBAN_RANKINGS = [
         url: "https://douban-api.shinya.click/movie_real_time_hotest"
     },
     {
-        title: "实时热门电视",
+        title: "实时热门剧集",
         url: "https://douban-api.shinya.click/tv_real_time_hotest"
     },
     {
@@ -44,27 +44,27 @@ const DOUBAN_RANKINGS = [
     {
         title: "全球口碑剧集榜",
         url: "https://douban-api.shinya.click/tv_global_best_weekly"
+    },
+    {
+        title: "热播新剧国产剧",
+        url: "https://douban-api.shinya.click/tv_domestic"
+    },
+    {
+        title: "热播新剧欧美剧",
+        url: "https://douban-api.shinya.click/tv_american"
+    },
+    {
+        title: "热播新剧日剧",
+        url: "https://douban-api.shinya.click/tv_japanese"
+    },
+    {
+        title: "热播新剧韩剧",
+        url: "https://douban-api.shinya.click/tv_korean"
+    },
+    {
+        title: "热播新剧动画",
+        url: "https://douban-api.shinya.click/tv_animation"
     }
-    // {
-    //     title: "热播新剧国产剧",
-    //     url: "https://douban-api.shinya.click/tv_domestic"
-    // },
-    // {
-    //     title: "热播新剧欧美剧",
-    //     url: "https://douban-api.shinya.click/tv_american"
-    // },
-    // {
-    //     title: "热播新剧日剧",
-    //     url: "https://douban-api.shinya.click/tv_japanese"
-    // },
-    // {
-    //     title: "热播新剧韩剧",
-    //     url: "https://douban-api.shinya.click/tv_korean"
-    // },
-    // {
-    //     title: "热播新剧动画",
-    //     url: "https://douban-api.shinya.click/tv_animation"
-    // }
 ];
 
 // 页面初始化
@@ -187,12 +187,12 @@ async function loadSingleRanking(ranking, index) {
             });
             
             // 电影海报
-            const posterUrl = movie.posterUrl || 'https://via.placeholder.com/150x225?text=无封面';
+            const posterUrl = movie.posterUrl || `data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAJYAAADhCAYAAAAqJkybAAAAAXNSR0IArs4c6QAACnlJREFUeF7tm3Vz3D4XhZUyMzMz9/t/g5S50+mUmZnzm7Pzal/X2V3LyZ5A76OZ/JFEOvY997EkS/LI6OjoWKLgwJAdGAGsITuKXMcBwAIEiwOAZbEVUcCCAYsDgGWxFVHAggGLA4BlsRVRwIIBiwOAZbEVUcCCAYsDgGWxFVHAggGLA4BlsRVRwIIBiwOAZbEVUcCCAYsDgGWxFVHAggGLA4BlsRVRwIIBiwOAZbEVUcCCAYsDgGWxFVHAggGLA4BlsRVRwIIBiwOAZbEVUcCCAYsDgGWxFVHAggGLA4BlsRVRwIIBiwOAZbEVUcCCAYsDgGWxFVHAggGLA4BlsRVRwIIBiwOAZbEVUcCCAYsDgGWxFVHAggGLA4BlsRVRwIIBiwOAZbEVUcCCAYsDgGWxFVHAggGLA4BlsRVRwIIBiwOAZbEVUcCCAYsDgGWxFVHAggGLA4BlsRVRwIIBiwOAZbEVUcCCAYsDgGWxFVHAggGLA4BlsRVRwIIBiwOAZbEVUcCCAYsDgGWxFVHAggGLA4BlsRVRwIIBiwOAZbEVUcCCAYsDgGWxFVHAggGLA4BlsRVRwIIBiwOAZbEVUcCCAYsDgGWxFVHAggGLA4BlsRVRwIIBiwOAZbEVUcCCAYsDgGWxFVHAggGLA4BlsRVRwIIBiwOAZbEVUcCCAYsDgGWxFVHAggGLA4BlsRVRwIIBiwOAZbEVUcCCAYsDgGWxFVHAggGLA4BlsRVRwKowsG3btrRo0aL0/fv39PDhw9Z07N69O61ZsyaNjY2l8+fPt27/LzWYEWDNmTMnrVq1Ko2MjAzV258/f6YPHz4Ua548eTLNmzcv/f79O128eLG4Xa64d+/eThwq586dG9d+w4YNST9TUd6+fZseP348FZfqeY0ZAdbKlSvTvn37hm6CwLp8+XKxrhusAwcOpOXLlxffz2Qqfvz4Md2+fXsyEpNq+0+D9ePHj3TlypVig9xg7dy5M61evbr4ftST515cw+ufP3+K26rHun//fnH9YVecEWDNnTs3rVixYmBsW7duTQsXLuzUuXv3bpEPX79+Td++fetZ98iRI129XEGJzKWeRPV+V69eHXjdpqGw6KYrlRTzpk2bOn959OhRev78eVuJaas/I8Aqif7QoUNp6dKlnaq95i8lGtU6p0+fTlWQmtoLtAsXLkwpWEePHu28TKhozqe532wpswYs9TCLFy8eGlj79+9P8+fP/ytPWV9/VG9XLRpWBWKGu1eCNWzloSv3eJrr3LlzpzUP0jlz5kynXdu5YuuLGRrMGrCOHz+eFixYYH2Vb5pj5XtokwcBev369b+aHD58eBzUdU2BpTfUXARXSVG9GzdulFS11pk1YJ06dSppLjbRpYASF5vA2rVrV1qyZElfKQ1bucfKPZ56rPqaWNthuOTeq3WGMVVoe81xD8bo6OjYZEWmor2GBSXNOSw0gdUUZ+nkPYOl4bI65Goo1nCrN8AvX770vJzAlg/1OoJaD54KYDVlqvL/s2fPdn7TW961a9datBxfVT3P2rVrW2s8ffo0PXnypG+7tmDVh8k8j/z161e6dOlSz+tk+OttNWfMb9bhwZIRpQuj1VV5Pa1ty82bN7u9wEQXKp89e9ZZzdaCrobkT58+/XUbgPV/O6Z1jqXtDyVjKorA+vz5c+dS2lbJWy9trq11pLyf2Gv5YVhgCdp+a2bHjh3rDHn0WAMyp3nBjh07GnOreUWeP2go1Dxr2bJl3YmyJshN5d69e0lLBoOKerK8CX3r1q2eVbdv397d76sPjcMCqykW/R+wSlxqqJPnFaqWFwrzq3/JwmXpLZRO3vPkW0OyFk3z0AxYM2QoLEm4tnHU/atUJ7XTCZYm/noBUNHwqO0WlWGBpYel3z6frqv5Jj1WCT0D6mioXL9+fafG+/fvu6vYkwFLiVm3bt24q2r+pNd9JTbDkitp+H337l23zYkTJzqLnOqt1IuqzbDA4q1wktCUNM8JVF1tjQgulcmApRVtDXttS/U1vtprvXr1qtPDANYsGQo1QT948GDnbusr7tMNlu4p7wbkE6PDAkvaOvbSq+QDkQyFbbuF/9XXcKVeJb8N1t/AJgOWLtFra0ZvhbqehrVeb4X11XAdadm4cWNny+bNmzdD67FKLAOsEpd61NHCqRYiVZRorURXz0iVgqUeTwuZL1686CxTDCqlb4X9NIbZY/U7IpMfNMCaAFj5o4TcVAf76kNDKVh5K6jkqO5MAYvJ+wSgaWpSfepV9/Xr10mLm/VSAlZ1qaKfTlW3H1h6U9R8TwnvtzksnWH1WIDVREmL/2vFW8NW9QzSy5cv04MHD3qqlJzP0vxHSwgqJUd7M1iajOvrHt2TlhTySdOmDXDAmkFvhZoz9PrIIG/49mOzemy3ugyR6+trmD179nRB1WG7fERFa1haLhDE+tE9lHx61gRWdWlk0AmD6nks9U65VB+q6t+rHuQ6gr86D6u2DX+6QT2KPhion1zQCYKmDweqHxrI+PqJh6pmfdunPocb1LEqefqAVVBqnpfX0aSh4VHX1Y9Ot+aerenMGAf9WgxlE6mqFfXqJrRWtjWfKvloQEOUhsOSnkZnqLRckcvmzZvTli1bur/reuohtEmtH82jNBT2+8JHDQcdvalu8/TypXrQb9A12niqYTuDHb7HknE63KaiN7+2JgsqDWn6Vq8OmHoR9TRaFa9PuDVsKBH6e5tv9aqJ1nXVa1aLejVdr9/iZq6bwep1Hr4NTNW6HPSbqHP/UDsNm3oQck85jNDyXFFaeqCmu0zrQb/pDp7r+xwALJ+3oZUBK3T6fcEDls/b0MqAFTr9vuABy+dtaGXACp1+X/CA5fM2tDJghU6/L3jA8nkbWhmwQqffFzxg+bwNrQxYodPvCx6wfN6GVgas0On3BQ9YPm9DKwNW6PT7ggcsn7ehlQErdPp9wQOWz9vQyoAVOv2+4AHL521oZcAKnX5f8IDl8za0MmCFTr8veMDyeRtaGbBCp98XPGD5vA2tDFih0+8LHrB83oZWBqzQ6fcFD1g+b0MrA1bo9PuCByyft6GVASt0+n3BA5bP29DKgBU6/b7gAcvnbWhlwAqdfl/wgOXzNrQyYIVOvy94wPJ5G1oZsEKn3xc8YPm8Da0MWKHT7wsesHzehlYGrNDp9wUPWD5vQysDVuj0+4IHLJ+3oZUBK3T6fcEDls/b0MqAFTr9vuABy+dtaGXACp1+X/CA5fM2tDJghU6/L3jA8nkbWhmwQqffFzxg+bwNrQxYodPvCx6wfN6GVgas0On3BQ9YPm9DKwNW6PT7ggcsn7ehlQErdPp9wQOWz9vQyoAVOv2+4AHL521oZcAKnX5f8IDl8za0MmCFTr8veMDyeRtaGbBCp98XPGD5vA2tDFih0+8LHrB83oZWBqzQ6fcFD1g+b0MrA1bo9PuCByyft6GVASt0+n3BA5bP29DKgBU6/b7gAcvnbWhlwAqdfl/wgOXzNrQyYIVOvy94wPJ5G1oZsEKn3xc8YPm8Da0MWKHT7wsesHzehlYGrNDp9wUPWD5vQysDVuj0+4IHLJ+3oZX/A3tENk7K1etyAAAAAElFTkSuQmCC`;
             movieCard.innerHTML = `
                 <div class="aspect-[2/3] overflow-hidden rounded-lg">
                     <img src="${posterUrl}" alt="${movie.title}" 
                          class="w-full h-full object-cover" 
-                         onerror="this.onerror=null; this.src='https://via.placeholder.com/150x225?text=无封面';">
+                         onerror="this.onerror=null;">
                 </div>
                 <div class="mt-1 text-center">
                     <p class="text-xs truncate" title="${movie.title}">${movie.title}</p>
@@ -899,7 +899,7 @@ async function search() {
                             <div class="w-full h-40 md:h-full">
                                 <img src="${item.vod_pic}" alt="${safeName}" 
                                      class="w-full h-full object-cover transition-transform hover:scale-110" 
-                                     onerror="this.onerror=null; this.src='https://via.placeholder.com/300x450?text=无封面'; this.classList.add('object-contain');" 
+                                     onerror="this.onerror=null; this.classList.add('object-contain');" 
                                      loading="lazy">
                                 <div class="absolute inset-0 bg-gradient-to-t from-[#111] to-transparent opacity-60"></div>
                             </div>
