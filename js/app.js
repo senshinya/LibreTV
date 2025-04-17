@@ -164,58 +164,66 @@ async function loadSingleRanking(ranking, index) {
         // 保留标题
         const title = ranking.title;
         
-        // 创建电影列表
+        // 获取所有电影
+        const moviesToShow = data.items || [];
+        
+        // 创建电影列表容器，不使用滚动条
         const moviesList = document.createElement('div');
         moviesList.className = 'grid grid-cols-3 gap-2';
+        moviesList.id = `movies-list-${index}`;
         
-        // 最多显示9部电影
-        const moviesToShow = data.items?.slice(0, 9) || [];
+        // 每页显示9个电影（3行3列）
+        const itemsPerPage = 9;
+        const totalPages = Math.ceil(moviesToShow.length / itemsPerPage);
         
-        moviesToShow.forEach(movie => {
-            const movieCard = document.createElement('div');
-            movieCard.className = 'relative cursor-pointer transition-transform hover:scale-105';
-            movieCard.setAttribute('data-title', movie.title);
-            movieCard.setAttribute('data-description', movie.description || '');
-            
-            // 添加点击事件，将电影名称填入搜索框并发起搜索
-            movieCard.addEventListener('click', () => {
-                const searchInput = document.getElementById('searchInput');
-                if (searchInput) {
-                    searchInput.value = movie.title;
-                    search();
-                }
-            });
-            
-            // 电影海报
-            const posterUrl = movie.posterUrl || `data:image/png;base64,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`;
-            movieCard.innerHTML = `
-                <div class="aspect-[2/3] overflow-hidden rounded-lg">
-                    <img src="${posterUrl}" alt="${movie.title}" 
-                         class="w-full h-full object-cover" 
-                         onerror="this.onerror=null;">
-                </div>
-                <div class="mt-1 text-center">
-                    <p class="text-xs truncate" title="${movie.title}">${movie.title}</p>
-                </div>
-                <div class="absolute inset-0 bg-black bg-opacity-80 opacity-0 hover:opacity-100 transition-opacity flex items-center justify-center p-2 rounded-lg">
-                    <p class="text-xs text-center text-white">${movie.description || movie.title}</p>
-                </div>
-            `;
-            
-            moviesList.appendChild(movieCard);
+        // 创建一个数据属性存储所有电影数据
+        rankingElement.dataset.allMovies = JSON.stringify(moviesToShow);
+        rankingElement.dataset.currentPage = "1";
+        rankingElement.dataset.totalPages = totalPages.toString();
+        
+        // 显示第一页电影
+        renderMoviesPage(moviesToShow, moviesList, 1, itemsPerPage);
+        
+        // 如果只有一页，禁用两个按钮，但仍然显示1/1
+        const prevDisabled = totalPages <= 1 ? 'disabled' : '';
+        const nextDisabled = totalPages <= 1 ? 'disabled' : '';
+        
+        paginationControls.innerHTML = `
+            <button class="pagination-prev text-xs text-gray-400 px-2 py-1 rounded hover:bg-gray-800 disabled:opacity-50 disabled:cursor-not-allowed" ${prevDisabled}>
+                <svg xmlns="http://www.w3.org/2000/svg" class="h-3 w-3" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7" />
+                </svg>
+            </button>
+            <span class="text-xs text-gray-400">
+                <span class="current-page">1</span>/<span class="total-pages">${totalPages || 1}</span>
+            </span>
+            <button class="pagination-next text-xs text-gray-400 px-2 py-1 rounded hover:bg-gray-800 disabled:opacity-50 disabled:cursor-not-allowed" ${nextDisabled}>
+                <svg xmlns="http://www.w3.org/2000/svg" class="h-3 w-3" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7" />
+                </svg>
+            </button>
+        `;
+        
+        // 添加分页事件
+        const prevButton = paginationControls.querySelector('.pagination-prev');
+        const nextButton = paginationControls.querySelector('.pagination-next');
+        
+        prevButton.addEventListener('click', () => {
+            const currentPage = parseInt(rankingElement.dataset.currentPage);
+            if (currentPage > 1) {
+                changePage(rankingElement, currentPage - 1, itemsPerPage);
+            }
         });
         
-        // 更新榜单内容
-        rankingElement.innerHTML = '';
+        nextButton.addEventListener('click', () => {
+            const currentPage = parseInt(rankingElement.dataset.currentPage);
+            const totalPages = parseInt(rankingElement.dataset.totalPages);
+            if (currentPage < totalPages) {
+                changePage(rankingElement, currentPage + 1, itemsPerPage);
+            }
+        });
         
-        // 添加榜单标题
-        const titleElement = document.createElement('h4');
-        titleElement.className = 'text-lg font-semibold mb-3 text-center';
-        titleElement.textContent = title;
-        rankingElement.appendChild(titleElement);
-        
-        // 添加电影列表
-        rankingElement.appendChild(moviesList);
+        contentContainer.appendChild(paginationControls);
         
     } catch (error) {
         console.error(`获取榜单 ${ranking.title} 失败:`, error);
@@ -232,6 +240,75 @@ async function loadSingleRanking(ranking, index) {
             </div>
         `;
     }
+}
+
+// 渲染指定页的电影
+function renderMoviesPage(allMovies, container, page, itemsPerPage) {
+    container.innerHTML = '';
+    
+    const startIndex = (page - 1) * itemsPerPage;
+    const endIndex = Math.min(startIndex + itemsPerPage, allMovies.length);
+    const moviesToShow = allMovies.slice(startIndex, endIndex);
+    
+    moviesToShow.forEach(movie => {
+        const movieCard = document.createElement('div');
+        movieCard.className = 'relative cursor-pointer transition-transform hover:scale-105';
+        movieCard.setAttribute('data-title', movie.title);
+        movieCard.setAttribute('data-description', movie.description || '');
+        
+        // 添加点击事件，将电影名称填入搜索框并发起搜索
+        movieCard.addEventListener('click', () => {
+            const searchInput = document.getElementById('searchInput');
+            if (searchInput) {
+                searchInput.value = movie.title;
+                search();
+            }
+        });
+        
+        // 电影海报
+        const posterUrl = movie.posterUrl || `data:image/png;base64,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`;
+        movieCard.innerHTML = `
+            <div class="aspect-[2/3] overflow-hidden rounded-lg">
+                <img src="${posterUrl}" alt="${movie.title}" 
+                     class="w-full h-full object-cover" 
+                     onerror="this.onerror=null;">
+            </div>
+            <div class="mt-1 text-center">
+                <p class="text-xs truncate" title="${movie.title}">${movie.title}</p>
+            </div>
+            <div class="absolute inset-0 bg-black bg-opacity-80 opacity-0 hover:opacity-100 transition-opacity flex items-center justify-center p-2 rounded-lg">
+                <p class="text-xs text-center text-white">${movie.description || movie.title}</p>
+            </div>
+        `;
+        
+        container.appendChild(movieCard);
+    });
+}
+
+// 切换页面
+function changePage(rankingElement, newPage, itemsPerPage) {
+    // 更新当前页码
+    rankingElement.dataset.currentPage = newPage.toString();
+    
+    // 获取电影数据
+    const allMovies = JSON.parse(rankingElement.dataset.allMovies);
+    const totalPages = parseInt(rankingElement.dataset.totalPages);
+    
+    // 获取电影列表容器
+    const moviesList = rankingElement.querySelector(`div[id^="movies-list-"]`);
+    if (!moviesList) return;
+    
+    // 渲染新页面
+    renderMoviesPage(allMovies, moviesList, newPage, itemsPerPage);
+    
+    // 更新分页控制按钮状态
+    const prevButton = rankingElement.querySelector('.pagination-prev');
+    const nextButton = rankingElement.querySelector('.pagination-next');
+    const currentPageSpan = rankingElement.querySelector('.current-page');
+    
+    if (prevButton) prevButton.disabled = newPage <= 1;
+    if (nextButton) nextButton.disabled = newPage >= totalPages;
+    if (currentPageSpan) currentPageSpan.textContent = newPage.toString();
 }
 
 // 初始化API复选框
