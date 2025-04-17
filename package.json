@@ -1,0 +1,14 @@
+{
+  "name": "libretv",
+  "version": "1.1.0",
+  "description": "免费在线视频搜索与观看平台",
+  "private": true,
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "dependencies": {
+    "node-fetch": "^3.3.2"
+  },
+  "author": "bestZwei",
+  "license": "MIT"
+}
