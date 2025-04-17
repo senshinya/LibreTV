@@ -31,15 +31,36 @@ function getMappedPath(path) {
 export async function onRequest(context) {
   const { request, env, next, waitUntil } = context; // next 和 waitUntil 可能需要
   const url = request.url;
+
+  // 创建标准化的响应
+  function createResponse(body, status = 200, headers = {}) {
+    const responseHeaders = new Headers(headers);
+    // 关键：添加 CORS 跨域头，允许前端 JS 访问代理后的响应
+    responseHeaders.set("Access-Control-Allow-Origin", "*"); // 允许任何来源访问
+    responseHeaders.set("Access-Control-Allow-Methods", "GET, HEAD, POST, OPTIONS"); // 允许的方法
+    responseHeaders.set("Access-Control-Allow-Headers", "*"); // 允许所有请求头
+
+    // 处理 CORS 预检请求 (OPTIONS) - 放在这里确保所有响应都处理
+     if (request.method === "OPTIONS") {
+         // 使用下面的 onOptions 函数可以更规范，但在这里处理也可以
+         return new Response(null, {
+             status: 204, // No Content
+             headers: responseHeaders // 包含上面设置的 CORS 头
+         });
+     }
+
+    return new Response(body, { status, headers: responseHeaders });
+  }
+  
   try {
     const path = url.replace(/^\/douban\//, '');
     if (!path) {
       // 如果没有提供路径，返回可用映射列表
-      return res.status(200).json({
+      return createResponse(JSON.stringify({
         message: 'Welcome to RSSHub JSON API',
         availablePaths: urlMap,
         usage: 'Use /{path} to fetch mapped RSSHub content'
-      });
+      }), 200);
     }
 
     // 获取映射的RSSHub路径
@@ -49,10 +70,10 @@ export async function onRequest(context) {
     const allowDirectPath = process.env.ALLOW_DIRECT_PATH === 'true';
 
     if (!rsshubPath && !allowDirectPath) {
-      return res.status(404).json({
+      return createResponse(JSON.stringify({
         error: 'Path not found in URL mapping',
         availablePaths: urlMap
-      });
+      }), 404);
     }
 
     // 构建RSSHub URL
@@ -81,11 +102,11 @@ export async function onRequest(context) {
     const response = await fetch(rsshubUrl);
 
     if (!response.ok) {
-      return res.status(response.status).json({
+      return createResponse(JSON.stringify({
         error: `Failed to fetch RSS: ${response.statusText}`,
         status: response.status,
         url: rsshubUrl
-      });
+      }), response.status);
     }
 
     // 获取RSS文本内容
@@ -102,14 +123,18 @@ export async function onRequest(context) {
       fetchedAt: new Date().toISOString()
     };
 
+    headers = {
+      "Cache-Control": "s-maxage=3600, stale-while-revalidate",
+    }
+
     // 返回JSON响应
-    return res.status(200).json(jsonData);
+    return createResponse(jsonData, 200, headers);
   } catch (error) {
     console.error('Error processing request:', error);
-    return res.status(500).json({
+    return createResponse(JSON.stringify({
       error: 'Internal server error',
       message: error.message
-    });
+    }), 500);
   }
 }
 
