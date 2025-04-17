@@ -30,7 +30,7 @@ function getMappedPath(path) {
 
 export async function onRequest(context) {
   const { request, env, next, waitUntil } = context; // next 和 waitUntil 可能需要
-  const url = request.url;
+  const url = new URL(request.url);
 
   // 创建标准化的响应
   function createResponse(body, status = 200, headers = {}) {
@@ -53,7 +53,9 @@ export async function onRequest(context) {
   }
   
   try {
-    const path = url.replace(/^\/douban\//, '');
+    const pathname = url.pathname;
+    const path = pathname.replace(/^\/douban\//, '');
+    console.log('提取的路径:', path); // 添加调试日志
     if (!path) {
       // 如果没有提供路径，返回可用映射列表
       return createResponse(JSON.stringify({
