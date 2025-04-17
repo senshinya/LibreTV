@@ -1,0 +1,16 @@
+version: '3'
+
+services:
+  libretv:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    ports:
+      - "8899:80"
+    environment:
+      - PASSWORD=your_password_here  # 设置密码保护，留空则不启用密码
+      # 可以添加其他环境变量
+    restart: unless-stopped
+    # 如果您想使用外部卷存储数据
+    # volumes:
+    #   - ./data:/usr/share/nginx/html/data

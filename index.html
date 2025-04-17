@@ -262,6 +262,23 @@
         </div>
     </div>
 
+    <!-- 密码验证弹窗 -->
+    <div id="passwordModal" class="fixed inset-0 bg-black/95 hidden items-center justify-center z-[65] transition-opacity duration-300">
+        <div class="bg-[#111] p-8 rounded-lg w-11/12 max-w-md border border-[#333] max-h-[90vh] flex flex-col">
+            <div class="flex justify-between items-center mb-6 flex-none">
+                <h2 class="text-2xl font-bold gradient-text">访问验证</h2>
+            </div>
+            <div class="mb-6">
+                <p class="text-gray-300 mb-4">请输入密码继续访问</p>
+                <input type="password" id="passwordInput" class="w-full bg-[#111] border border-[#333] text-white px-4 py-3 rounded-lg focus:outline-none focus:border-white transition-colors" placeholder="密码...">
+                <p id="passwordError" class="text-red-500 mt-2 hidden">密码错误，请重试</p>
+            </div>
+            <button id="passwordSubmitBtn" class="px-6 py-3 bg-gradient-to-r from-indigo-500 via-purple-500 to-pink-500 text-white font-semibold rounded-lg hover:shadow-lg transition-all duration-300">
+                确认
+            </button>
+        </div>
+    </div>
+
     <!-- 版权声明弹窗 -->
     <div id="disclaimerModal" class="fixed inset-0 bg-black/90 hidden items-center justify-center z-[60]">
         <div class="bg-[#111] p-8 rounded-lg border border-[#333] w-11/12 max-w-2xl max-h-[90vh] overflow-y-auto">
@@ -320,7 +337,18 @@
     <script src="js/config.js"></script>
     <script src="js/ui.js"></script>
     <script src="js/api.js"></script>
+    <script src="js/password.js"></script>
     <script src="js/app.js"></script>
+
+    <!-- 环境变量注入脚本 -->
+    <script>
+        // 创建全局环境变量对象
+        window.__ENV__ = window.__ENV__ || {};
+        
+        // 注入服务器端环境变量 (将由服务器端替换)
+        // PASSWORD 变量将在这里被服务器端注入
+        window.__ENV__.PASSWORD = "{{PASSWORD}}";
+    </script>
 
     <!-- 弹窗显示脚本 -->
     <script>
