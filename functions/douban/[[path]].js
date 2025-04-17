@@ -1,3 +1,5 @@
+const { JSDOM } = require('jsdom');
+
 const urlMap = {
   // 豆瓣
   'movie_showing': 'douban/list/movie_showing',
