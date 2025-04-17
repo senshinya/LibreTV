@@ -87,7 +87,7 @@ document.addEventListener('DOMContentLoaded', function() {
     // 设置默认API选择（如果是第一次加载）
     if (!localStorage.getItem('hasInitializedDefaults')) {
         // 仅选择黑木耳源
-        selectedAPIs = ["heimuer"];
+        selectedAPIs = Object.keys(API_SITES);
         localStorage.setItem('selectedAPIs', JSON.stringify(selectedAPIs));
         
         // 默认选中过滤开关
@@ -131,9 +131,9 @@ async function loadDoubanRankings() {
         rankingElement.className = 'bg-[#111] rounded-lg p-4 shadow-lg';
         rankingElement.id = `ranking-${index}`;
         
-        // 添加骨架屏
+        // 添加骨架屏 - 移除标题的text-center类
         rankingElement.innerHTML = `
-            <h4 class="text-lg font-semibold mb-3 text-center">${ranking.title}</h4>
+            <h4 class="text-lg font-semibold mb-3 w-auto">${ranking.title}</h4>
             <div class="grid grid-cols-3 gap-2">
                 ${Array(9).fill(0).map(() => `
                     <div class="animate-pulse">
@@ -184,6 +184,38 @@ async function loadSingleRanking(ranking, index) {
         // 显示第一页电影
         renderMoviesPage(moviesToShow, moviesList, 1, itemsPerPage);
         
+       // 更新榜单内容
+       rankingElement.innerHTML = '';
+
+    //    const titleElement = document.createElement('h4');
+    //    titleElement.className = 'text-lg font-semibold mb-3 w-auto';
+    //    titleElement.textContent = title;
+    //    rankingElement.appendChild(titleElement);
+        
+       // 创建一个flex容器，但使用justify-start而不是justify-between
+       const contentContainer = document.createElement('div');
+       contentContainer.className = 'flex flex-col h-full justify-start';
+       rankingElement.appendChild(contentContainer);
+       
+       // 添加榜单标题 - 移除text-center类
+       const titleElement = document.createElement('h4');
+       titleElement.className = 'text-lg font-semibold mb-3 w-auto';
+       titleElement.textContent = title;
+       titleElement.style.alignSelf = 'baseline'
+       contentContainer.appendChild(titleElement);
+       
+       // 添加电影列表
+       contentContainer.appendChild(moviesList);
+       
+       // 添加一个占位空间，将分页控制推到底部
+       const spacer = document.createElement('div');
+       spacer.className = 'flex-grow';
+       contentContainer.appendChild(spacer);
+       
+       // 添加分页控制容器 - 无论是否有多页都添加
+       const paginationControls = document.createElement('div');
+       paginationControls.className = 'flex justify-center items-center mt-3 space-x-2';
+        
         // 如果只有一页，禁用两个按钮，但仍然显示1/1
         const prevDisabled = totalPages <= 1 ? 'disabled' : '';
         const nextDisabled = totalPages <= 1 ? 'disabled' : '';
@@ -232,9 +264,9 @@ async function loadSingleRanking(ranking, index) {
         const rankingElement = document.getElementById(`ranking-${index}`);
         if (!rankingElement) return;
         
-        // 显示错误信息
+        // 显示错误信息 - 移除标题的text-center类
         rankingElement.innerHTML = `
-            <h4 class="text-lg font-semibold mb-3 text-center">${ranking.title}</h4>
+            <h4 class="text-lg font-semibold mb-3">${ranking.title}</h4>
             <div class="text-center py-4">
                 <p class="text-gray-400">获取榜单数据失败，请稍后再试</p>
             </div>
