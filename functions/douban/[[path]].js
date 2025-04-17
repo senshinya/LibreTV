@@ -1,5 +1,3 @@
-const { JSDOM } = require('jsdom');
-
 const urlMap = {
   // 豆瓣
   'movie_showing': 'douban/list/movie_showing',
@@ -140,20 +138,20 @@ export async function onRequest(context) {
 }
 
 function convertRssToJson(rssContent) {
-  // 使用JSDOM创建一个虚拟DOM环境
-  const dom = new JSDOM(rssContent, { contentType: 'text/xml' });
-  const xmlDoc = dom.window.document;
+  // 使用 DOMParser 替代 JSDOM
+  const parser = new DOMParser();
+  const xmlDoc = parser.parseFromString(rssContent, "text/xml");
   
   // 获取频道信息
   const channel = xmlDoc.querySelector("channel");
-  const title = channel.querySelector("title")?.textContent.trim() || '';
-  const link = channel.querySelector("link")?.textContent.trim() || '';
-  const description = channel.querySelector("description")?.textContent.trim() || '';
-  const language = channel.querySelector("language")?.textContent.trim() || null;
-  const lastBuildDate = channel.querySelector("lastBuildDate")?.textContent.trim() || null;
+  const title = channel?.querySelector("title")?.textContent.trim() || '';
+  const link = channel?.querySelector("link")?.textContent.trim() || '';
+  const description = channel?.querySelector("description")?.textContent.trim() || '';
+  const language = channel?.querySelector("language")?.textContent.trim() || null;
+  const lastBuildDate = channel?.querySelector("lastBuildDate")?.textContent.trim() || null;
   
   // 获取所有条目
-  const itemElements = channel.querySelectorAll("item");
+  const itemElements = channel?.querySelectorAll("item") || [];
   const items = Array.from(itemElements).map(item => {
     // 提取标题
     const itemTitle = item.querySelector("title")?.textContent.trim() || '';
@@ -163,8 +161,9 @@ function convertRssToJson(rssContent) {
     
     // 解析描述内容
     const descriptionHTML = item.querySelector("description")?.textContent.trim() || '';
-    const descriptionDom = new JSDOM(descriptionHTML, { contentType: 'text/html' });
-    const descriptionDoc = descriptionDom.window.document;
+    
+    // 使用 DOMParser 解析 HTML
+    const descriptionDoc = parser.parseFromString(descriptionHTML, "text/html");
     const paragraphs = descriptionDoc.querySelectorAll("p");
     
     // 提取评分（如果有）
