@@ -30,7 +30,7 @@ function getMappedPath(path) {
 
 export async function onRequest(context) {
   const { request, env, next, waitUntil } = context; // next 和 waitUntil 可能需要
-  const url = new URL(request.url);
+  const url = request.url;
   try {
     const path = url.replace(/^\/douban\//, '');
     if (!path) {
