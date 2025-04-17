@@ -129,7 +129,7 @@ export async function onRequest(context) {
     }
 
     // 返回JSON响应
-    return createResponse(jsonData, 200, headers);
+    return createResponse(json.stringify(jsonData), 200, headers);
   } catch (error) {
     console.error('Error processing request:', error);
     return createResponse(JSON.stringify({
