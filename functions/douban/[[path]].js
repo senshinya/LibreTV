@@ -126,6 +126,7 @@ export async function onRequest(context) {
 
     const headers = {
       "Cache-Control": "s-maxage=3600, stale-while-revalidate",
+      "CDN-Cache-Control": "max-age=3600"
     }
 
     // 返回JSON响应
