@@ -66,10 +66,7 @@ export async function onRequest(context) {
     // 获取映射的RSSHub路径
     const rsshubPath = getMappedPath(path);
 
-    // 如果没有找到映射，检查是否允许直接传递路径
-    const allowDirectPath = process.env.ALLOW_DIRECT_PATH === 'true';
-
-    if (!rsshubPath && !allowDirectPath) {
+    if (!rsshubPath) {
       return createResponse(JSON.stringify({
         error: 'Path not found in URL mapping',
         availablePaths: urlMap
