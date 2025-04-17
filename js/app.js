@@ -154,7 +154,7 @@ async function loadDoubanRankings() {
 // 加载单个榜单
 async function loadSingleRanking(ranking, index) {
   try {
-    const response = await fetch(ranking.url);
+    const response = await fetch(PROXY_URL + encodeURIComponent(ranking.url));
     const data = await response.json();
 
     // 获取榜单容器
