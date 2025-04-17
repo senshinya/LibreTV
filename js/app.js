@@ -15,55 +15,55 @@ let episodesReversed = false;
 const DOUBAN_RANKINGS = [
     {
         title: "每月推荐电影",
-        url: "/douban/recommended_movie"
+        url: "https://douban-api.shinya.click/recommended_movie"
     },
     {
         title: "每月推荐剧集",
-        url: "/douban/recommended_tv"
+        url: "https://douban-api.shinya.click/recommended_tv"
     },
     {
         title: "影院热映",
-        url: "/douban/movie_showing"
+        url: "https://douban-api.shinya.click/movie_showing"
     },
     {
         title: "实时热门电影",
-        url: "/douban/movie_real_time_hotest"
+        url: "https://douban-api.shinya.click/movie_real_time_hotest"
     },
     {
         title: "实时热门剧集",
-        url: "/douban/tv_real_time_hotest"
+        url: "https://douban-api.shinya.click/tv_real_time_hotest"
     },
     {
         title: "一周口碑电影榜",
-        url: "/douban/movie_weekly_best"
+        url: "https://douban-api.shinya.click/movie_weekly_best"
     },
     {
         title: "华语口碑剧集榜",
-        url: "/douban/tv_chinese_best_weekly"
+        url: "https://douban-api.shinya.click/tv_chinese_best_weekly"
     },
     {
         title: "全球口碑剧集榜",
-        url: "/douban/tv_global_best_weekly"
+        url: "https://douban-api.shinya.click/tv_global_best_weekly"
     },
     {
         title: "热播新剧国产剧",
-        url: "/douban/tv_domestic"
+        url: "https://douban-api.shinya.click/tv_domestic"
     },
     {
         title: "热播新剧欧美剧",
-        url: "/douban/tv_american"
+        url: "https://douban-api.shinya.click/tv_american"
     },
     {
         title: "热播新剧日剧",
-        url: "/douban/tv_japanese"
+        url: "https://douban-api.shinya.click/tv_japanese"
     },
     {
         title: "热播新剧韩剧",
-        url: "/douban/tv_korean"
+        url: "https://douban-api.shinya.click/tv_korean"
     },
     {
         title: "热播新剧动画",
-        url: "/douban/tv_animation"
+        url: "https://douban-api.shinya.click/tv_animation"
     }
 ];
 
