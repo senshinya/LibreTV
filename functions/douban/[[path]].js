@@ -1,3 +1,5 @@
+import { XMLParser } from 'fast-xml-parser';
+
 const urlMap = {
   // 豆瓣
   'movie_showing': 'douban/list/movie_showing',
@@ -138,70 +140,84 @@ export async function onRequest(context) {
 }
 
 function convertRssToJson(rssContent) {
-  // 使用 DOMParser 替代 JSDOM
-  const parser = new DOMParser();
-  const xmlDoc = parser.parseFromString(rssContent, "text/xml");
-  
-  // 获取频道信息
-  const channel = xmlDoc.querySelector("channel");
-  const title = channel?.querySelector("title")?.textContent.trim() || '';
-  const link = channel?.querySelector("link")?.textContent.trim() || '';
-  const description = channel?.querySelector("description")?.textContent.trim() || '';
-  const language = channel?.querySelector("language")?.textContent.trim() || null;
-  const lastBuildDate = channel?.querySelector("lastBuildDate")?.textContent.trim() || null;
-  
-  // 获取所有条目
-  const itemElements = channel?.querySelectorAll("item") || [];
-  const items = Array.from(itemElements).map(item => {
-    // 提取标题
-    const itemTitle = item.querySelector("title")?.textContent.trim() || '';
+  try {
+    // 创建 XMLParser 实例，配置保留CDATA内容
+    const parser = new XMLParser({
+      ignoreAttributes: false,
+      parseAttributeValue: true,
+      parseTagValue: true,
+      trimValues: true,
+      cdataPropName: "__cdata"
+    });
     
-    // 提取链接
-    const itemLink = item.querySelector("link")?.textContent.trim() || '';
+    // 解析XML内容
+    const result = parser.parse(rssContent);
     
-    // 解析描述内容
-    const descriptionHTML = item.querySelector("description")?.textContent.trim() || '';
+    // 获取频道信息
+    const channel = result.rss?.channel || {};
+    const title = channel.title || '';
+    const link = channel.link || '';
+    const description = channel.description || '';
+    const language = channel.language || null;
+    const lastBuildDate = channel.lastBuildDate || null;
     
-    // 使用 DOMParser 解析 HTML
-    const descriptionDoc = parser.parseFromString(descriptionHTML, "text/html");
-    const paragraphs = descriptionDoc.querySelectorAll("p");
-    
-    // 提取评分（如果有）
-    let rating = null;
-    if (paragraphs.length > 1 && !isNaN(parseFloat(paragraphs[1]?.textContent))) {
-      rating = paragraphs[1].textContent.trim();
-    }
-    
-    // 提取描述（通常是第二个或第三个段落）
-    let description = "";
-    for (let i = 0; i < paragraphs.length; i++) {
-      const text = paragraphs[i]?.textContent.trim();
-      if (text && text !== itemTitle && !(!isNaN(parseFloat(text)) && text.length < 5)) {
-        description = text;
-        break;
+    // 处理条目
+    const rawItems = Array.isArray(channel.item) ? channel.item : (channel.item ? [channel.item] : []);
+    const items = rawItems.map(item => {
+      const itemTitle = item.title || '';
+      const itemLink = item.link || '';
+      const descriptionHTML = item.description?.__cdata || item.description || '';
+      
+      // 提取海报URL
+      const imgMatch = descriptionHTML.match(/<img[^>]+src=["']([^"']+)["']/i);
+      const posterUrl = imgMatch ? imgMatch[1] : null;
+      
+      // 提取段落
+      const paragraphs = [];
+      const pMatches = descriptionHTML.matchAll(/<p[^>]*>(.*?)<\/p>/gi);
+      for (const match of pMatches) {
+        const text = match[1].replace(/<[^>]+>/g, '').trim();
+        if (text) paragraphs.push(text);
       }
-    }
-    
-    // 提取海报URL
-    const imgElement = descriptionDoc.querySelector("img");
-    const posterUrl = imgElement ? imgElement.getAttribute("src") : null;
+      
+      // 提取评分
+      let rating = null;
+      if (paragraphs.length > 1 && !isNaN(parseFloat(paragraphs[1]))) {
+        rating = paragraphs[1];
+      }
+      
+      // 提取描述
+      let itemDescription = "";
+      for (const text of paragraphs) {
+        if (text && text !== itemTitle && !(!isNaN(parseFloat(text)) && text.length < 5)) {
+          itemDescription = text;
+          break;
+        }
+      }
+      
+      return {
+        title: itemTitle,
+        description: itemDescription,
+        posterUrl,
+        link: itemLink,
+        rating
+      };
+    });
     
     return {
-      title: itemTitle,
+      title,
+      link,
       description,
-      posterUrl,
-      link: itemLink,
-      rating
+      language,
+      lastBuildDate,
+      items
     };
-  });
-  
-  // 构建最终的JSON对象
-  return {
-    title,
-    link,
-    description,
-    language,
-    lastBuildDate,
-    items
-  };
+  } catch (error) {
+    console.error('解析RSS内容出错:', error);
+    return {
+      error: '解析RSS内容失败',
+      message: error.message,
+      items: []
+    };
+  }
 }
