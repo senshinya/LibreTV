@@ -32,7 +32,7 @@ export async function onRequest(context) {
   const { request, env, next, waitUntil } = context; // next 和 waitUntil 可能需要
   const url = new URL(request.url);
   try {
-    const path = pathname.replace(/^\/douban\//, '');
+    const path = url.replace(/^\/douban\//, '');
     if (!path) {
       // 如果没有提供路径，返回可用映射列表
       return res.status(200).json({
