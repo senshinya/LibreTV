@@ -124,7 +124,7 @@ export async function onRequest(context) {
       fetchedAt: new Date().toISOString()
     };
 
-    headers = {
+    const headers = {
       "Cache-Control": "s-maxage=3600, stale-while-revalidate",
     }
 
