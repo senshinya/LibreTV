@@ -1,5 +1,12 @@
 // UI相关函数
 function toggleSettings(e) {
+    // 密码保护校验
+    if (window.isPasswordProtected && window.isPasswordVerified) {
+        if (window.isPasswordProtected() && !window.isPasswordVerified()) {
+            showPasswordModal && showPasswordModal();
+            return;
+        }
+    }
     // 阻止事件冒泡，防止触发document的点击事件
     e && e.stopPropagation();
     const panel = document.getElementById('settingsPanel');
@@ -223,6 +230,13 @@ function renderSearchHistory() {
 
 // 增加清除搜索历史功能
 function clearSearchHistory() {
+    // 密码保护校验
+    if (window.isPasswordProtected && window.isPasswordVerified) {
+        if (window.isPasswordProtected() && !window.isPasswordVerified()) {
+            showPasswordModal && showPasswordModal();
+            return;
+        }
+    }
     try {
         localStorage.removeItem(SEARCH_HISTORY_KEY);
         renderSearchHistory();
@@ -235,6 +249,13 @@ function clearSearchHistory() {
 
 // 历史面板相关函数
 function toggleHistory(e) {
+    // 密码保护校验
+    if (window.isPasswordProtected && window.isPasswordVerified) {
+        if (window.isPasswordProtected() && !window.isPasswordVerified()) {
+            showPasswordModal && showPasswordModal();
+            return;
+        }
+    }
     if (e) e.stopPropagation();
     
     const panel = document.getElementById('historyPanel');
@@ -414,33 +435,85 @@ function deleteHistoryItem(encodedUrl) {
 
 // 从历史记录播放
 function playFromHistory(url, title, episodeIndex, playbackPosition = 0) {
-    // 构造带播放进度参数的URL
-    const positionParam = playbackPosition > 10 ? `&position=${Math.floor(playbackPosition)}` : '';
-    
-    if (url.includes('?')) {
-        // URL已有参数，确保包含必要参数
-        let playUrl = url;
+    try {
+        // 尝试从localStorage获取当前视频的集数信息
+        let episodesList = [];
         
-        // 添加集数参数（如果没有）
-        if (!url.includes('index=') && episodeIndex > 0) {
-            playUrl += `&index=${episodeIndex}`;
+        // 检查viewingHistory，查找匹配的项以获取其集数数据
+        const historyRaw = localStorage.getItem('viewingHistory');
+        if (historyRaw) {
+            const history = JSON.parse(historyRaw);
+            // 根据标题查找匹配的历史记录
+            const historyItem = history.find(item => item.title === title);
+            
+            // 如果找到了匹配的历史记录，尝试获取该条目的集数数据
+            if (historyItem && historyItem.episodes && Array.isArray(historyItem.episodes)) {
+                episodesList = historyItem.episodes;
+                console.log(`从历史记录找到视频 ${title} 的集数数据:`, episodesList.length);
+            }
         }
         
-        // 添加播放位置参数
-        if (playbackPosition > 10) {
-            playUrl += positionParam;
+        // 如果在历史记录中没找到，尝试使用上一个会话的集数数据
+        if (episodesList.length === 0) {
+            try {
+                const storedEpisodes = JSON.parse(localStorage.getItem('currentEpisodes') || '[]');
+                if (storedEpisodes.length > 0) {
+                    episodesList = storedEpisodes;
+                    console.log(`使用localStorage中的集数数据:`, episodesList.length);
+                }
+            } catch (e) {
+                console.error('解析currentEpisodes失败:', e);
+            }
         }
         
-        window.open(playUrl, '_blank');
-    } else {
-        // 原始URL，添加完整参数
-        const playerUrl = `player.html?url=${encodeURIComponent(url)}&title=${encodeURIComponent(title)}&index=${episodeIndex}${positionParam}`;
-        window.open(playerUrl, '_blank');
+        // 构造带播放进度参数的URL
+        const positionParam = playbackPosition > 10 ? `&position=${Math.floor(playbackPosition)}` : '';
+        // 构造集数参数（如果有）
+        const episodesParam = episodesList.length > 0 ? 
+            `&episodes=${encodeURIComponent(JSON.stringify(episodesList))}` : '';
+        
+        if (url.includes('?')) {
+            // URL已有参数，确保包含必要参数
+            let playUrl = url;
+            
+            // 添加集数参数（如果没有）
+            if (!url.includes('index=') && episodeIndex > 0) {
+                playUrl += `&index=${episodeIndex}`;
+            }
+            
+            // 添加播放位置参数
+            if (playbackPosition > 10) {
+                playUrl += positionParam;
+            }
+            
+            // 添加集数列表参数
+            if (episodesList.length > 0 && !url.includes('episodes=')) {
+                playUrl += episodesParam;
+            }
+            
+            window.open(playUrl, '_blank');
+        } else {
+            // 原始URL，添加完整参数
+            const playerUrl = `player.html?url=${encodeURIComponent(url)}&title=${encodeURIComponent(title)}&index=${episodeIndex}${positionParam}${episodesParam}`;
+            window.open(playerUrl, '_blank');
+        }
+    } catch (e) {
+        console.error('从历史记录播放失败:', e);
+        // 回退到原始简单URL
+        const simpleUrl = `player.html?url=${encodeURIComponent(url)}&title=${encodeURIComponent(title)}&index=${episodeIndex}`;
+        window.open(simpleUrl, '_blank');
     }
 }
 
 // 添加观看历史 - 确保每个视频标题只有一条记录
 function addToViewingHistory(videoInfo) {
+    // 密码保护校验
+    if (window.isPasswordProtected && window.isPasswordVerified) {
+        if (window.isPasswordProtected() && !window.isPasswordVerified()) {
+            showPasswordModal && showPasswordModal();
+            return;
+        }
+    }
     try {
         const history = getViewingHistory();
         
@@ -466,15 +539,38 @@ function addToViewingHistory(videoInfo) {
             // 更新URL，确保能够跳转到正确的集数
             existingItem.url = videoInfo.url;
             
+            // 重要：确保episodes数据与当前视频匹配
+            // 只有当videoInfo中包含有效的episodes数据时才更新
+            if (videoInfo.episodes && Array.isArray(videoInfo.episodes) && videoInfo.episodes.length > 0) {
+                // 如果传入的集数数据与当前保存的不同，则更新
+                if (!existingItem.episodes || 
+                    !Array.isArray(existingItem.episodes) || 
+                    existingItem.episodes.length !== videoInfo.episodes.length) {
+                    console.log(`更新 "${videoInfo.title}" 的剧集数据: ${videoInfo.episodes.length}集`);
+                    existingItem.episodes = [...videoInfo.episodes]; // 使用深拷贝
+                }
+            }
+            
             // 移到最前面
             history.splice(existingIndex, 1);
             history.unshift(existingItem);
         } else {
-            // 添加新记录到最前面
-            history.unshift({
+            // 添加新记录到最前面，确保包含剧集数据
+            const newItem = {
                 ...videoInfo,
                 timestamp: Date.now()
-            });
+            };
+            
+            // 确保episodes字段是一个数组
+            if (videoInfo.episodes && Array.isArray(videoInfo.episodes)) {
+                newItem.episodes = [...videoInfo.episodes]; // 使用深拷贝
+                console.log(`保存新视频 "${videoInfo.title}" 的剧集数据: ${videoInfo.episodes.length}集`);
+            } else {
+                // 如果没有提供episodes，初始化为空数组
+                newItem.episodes = [];
+            }
+            
+            history.unshift(newItem);
         }
         
         // 限制历史记录数量为50条

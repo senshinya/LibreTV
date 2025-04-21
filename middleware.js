@@ -1,3 +1,5 @@
+import { sha256 } from './js/sha256.js'; // 需新建或引入SHA-256实现
+
 // Vercel Middleware to inject environment variables
 export default async function middleware(request) {
   // Get the URL from the request
@@ -24,9 +26,13 @@ export default async function middleware(request) {
   // Replace the placeholder with actual environment variable
   // If PASSWORD is not set, replace with empty string
   const password = process.env.PASSWORD || '';
+  let passwordHash = '';
+  if (password) {
+    passwordHash = await sha256(password);
+  }
   const modifiedHtml = originalHtml.replace(
     'window.__ENV__.PASSWORD = "{{PASSWORD}}";',
-    `window.__ENV__.PASSWORD = "${password}";`
+    `window.__ENV__.PASSWORD = "${passwordHash}"; // SHA-256 hash`
   );
   
   // Create a new response with the modified HTML

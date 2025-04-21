@@ -971,6 +971,13 @@ function getCustomApiInfo(customApiIndex) {
 
 // 搜索功能 - 修改为支持多选API
 async function search() {
+    // 密码保护校验
+    if (window.isPasswordProtected && window.isPasswordVerified) {
+        if (window.isPasswordProtected() && !window.isPasswordVerified()) {
+            showPasswordModal && showPasswordModal();
+            return;
+        }
+    }
   const query = document.getElementById('searchInput').value.trim();
 
   if (!query) {
@@ -1178,66 +1185,73 @@ async function search() {
 
 // 显示详情 - 修改为支持自定义API
 async function showDetails(id, vod_name, sourceCode) {
-  if (!id) {
-    showToast('视频ID无效', 'error');
-    return;
-  }
-
-  showLoading();
-  try {
-    // 构建API参数
-    let apiParams = '';
-
-    // 处理自定义API源
-    if (sourceCode.startsWith('custom_')) {
-      const customIndex = sourceCode.replace('custom_', '');
-      const customApi = getCustomApiInfo(customIndex);
-      if (!customApi) {
-        showToast('自定义API配置无效', 'error');
-        hideLoading();
-        return;
-      }
-
-      apiParams = '&customApi=' + encodeURIComponent(customApi.url) + '&source=custom';
-    } else {
-      // 内置API
-      apiParams = '&source=' + sourceCode;
-    }
-
-    const response = await fetch('/api/detail?id=' + encodeURIComponent(id) + apiParams);
-
-    const data = await response.json();
-
-    // ...existing code for showing details...
-    const modal = document.getElementById('modal');
-    const modalTitle = document.getElementById('modalTitle');
-    const modalContent = document.getElementById('modalContent');
-
-    // 显示来源信息
-    const sourceName = data.videoInfo && data.videoInfo.source_name ?
-      ` <span class="text-sm font-normal text-gray-400">(${data.videoInfo.source_name})</span>` : '';
-
-    // 不对标题进行截断处理，允许完整显示
-    modalTitle.innerHTML = `<span class="break-words">${vod_name || '未知视频'}</span>${sourceName}`;
-    currentVideoTitle = vod_name || '未知视频';
-
-    if (data.episodes && data.episodes.length > 0) {
-      // 安全处理集数URL
-      const safeEpisodes = data.episodes.map(url => {
-        try {
-          // 确保URL是有效的并且是http或https开头
-          return url && (url.startsWith('http://') || url.startsWith('https://'))
-            ? url.replace(/"/g, '&quot;')
-            : '';
-        } catch (e) {
-          return '';
+    // 密码保护校验
+    if (window.isPasswordProtected && window.isPasswordVerified) {
+        if (window.isPasswordProtected() && !window.isPasswordVerified()) {
+            showPasswordModal && showPasswordModal();
+            return;
         }
-      }).filter(url => url); // 过滤掉空URL
-
-      // 保存当前视频的所有集数
-      currentEpisodes = safeEpisodes;
-      episodesReversed = false; // 默认正序
-      modalContent.innerHTML = `
+    }
+    if (!id) {
+        showToast('视频ID无效', 'error');
+        return;
+    }
+    
+    showLoading();
+    try {
+        // 构建API参数
+        let apiParams = '';
+        
+        // 处理自定义API源
+        if (sourceCode.startsWith('custom_')) {
+            const customIndex = sourceCode.replace('custom_', '');
+            const customApi = getCustomApiInfo(customIndex);
+            if (!customApi) {
+                showToast('自定义API配置无效', 'error');
+                hideLoading();
+                return;
+            }
+            
+            apiParams = '&customApi=' + encodeURIComponent(customApi.url) + '&source=custom';
+        } else {
+            // 内置API
+            apiParams = '&source=' + sourceCode;
+        }
+        
+        const response = await fetch('/api/detail?id=' + encodeURIComponent(id) + apiParams);
+        
+        const data = await response.json();
+        
+        // ...existing code for showing details...
+        const modal = document.getElementById('modal');
+        const modalTitle = document.getElementById('modalTitle');
+        const modalContent = document.getElementById('modalContent');
+        
+        // 显示来源信息
+        const sourceName = data.videoInfo && data.videoInfo.source_name ? 
+            ` <span class="text-sm font-normal text-gray-400">(${data.videoInfo.source_name})</span>` : '';
+        
+        // 不对标题进行截断处理，允许完整显示
+        modalTitle.innerHTML = `<span class="break-words">${vod_name || '未知视频'}</span>${sourceName}`;
+        currentVideoTitle = vod_name || '未知视频';
+        
+        if (data.episodes && data.episodes.length > 0) {
+            // 安全处理集数URL
+            const safeEpisodes = data.episodes.map(url => {
+                try {
+                    // 确保URL是有效的并且是http或https开头
+                    return url && (url.startsWith('http://') || url.startsWith('https://'))
+                        ? url.replace(/"/g, '&quot;')
+                        : '';
+                } catch (e) {
+                    return '';
+                }
+            }).filter(url => url); // 过滤掉空URL
+            
+            // 保存当前视频的所有集数
+            currentEpisodes = safeEpisodes;
+            episodesReversed = false; // 默认正序
+            modalContent.innerHTML = `
                 <div class="flex justify-end mb-2">
                     <button onclick="toggleEpisodeOrder()" class="px-4 py-2 bg-gradient-to-r from-indigo-500 via-purple-500 to-pink-500 text-white font-semibold rounded-full shadow-lg hover:shadow-xl transition-all duration-300 transform hover:-translate-y-1 flex items-center justify-center space-x-2">
                         <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" viewBox="0 0 20 20" fill="currentColor">
@@ -1265,52 +1279,62 @@ async function showDetails(id, vod_name, sourceCode) {
 
 // 更新播放视频函数，修改为在新标签页中打开播放页面，并保存到历史记录
 function playVideo(url, vod_name, episodeIndex = 0) {
-  if (!url) {
-    showToast('无效的视频链接', 'error');
-    return;
-  }
-
-  // 获取当前视频来源名称（从模态框标题中提取）
-  let sourceName = '';
-  const modalTitle = document.getElementById('modalTitle');
-  if (modalTitle) {
-    const sourceSpan = modalTitle.querySelector('span.text-gray-400');
-    if (sourceSpan) {
-      // 提取括号内的来源名称, 例如从 "(黑木耳)" 提取 "黑木耳"
-      const sourceText = sourceSpan.textContent;
-      const match = sourceText.match(/\(([^)]+)\)/);
-      if (match && match[1]) {
-        sourceName = match[1].trim();
-      }
+    // 密码保护校验
+    if (window.isPasswordProtected && window.isPasswordVerified) {
+        if (window.isPasswordProtected() && !window.isPasswordVerified()) {
+            showPasswordModal && showPasswordModal();
+            return;
+        }
     }
-  }
-
-  // 保存当前状态到localStorage，让播放页面可以获取
-  localStorage.setItem('currentVideoTitle', currentVideoTitle);
-  localStorage.setItem('currentEpisodeIndex', episodeIndex);
-  localStorage.setItem('currentEpisodes', JSON.stringify(currentEpisodes));
-  localStorage.setItem('episodesReversed', episodesReversed);
-
-  // 构建视频信息对象，使用标题作为唯一标识
-  const videoTitle = vod_name || currentVideoTitle;
-  const videoInfo = {
-    title: videoTitle,
-    url: url,
-    episodeIndex: episodeIndex,
-    sourceName: sourceName,
-    timestamp: Date.now()
-  };
-
-  // 保存到观看历史，添加sourceName
-  if (typeof addToViewingHistory === 'function') {
-    addToViewingHistory(videoInfo);
-  }
-
-  // 构建播放页面URL，传递必要参数
-  const playerUrl = `player.html?url=${encodeURIComponent(url)}&title=${encodeURIComponent(videoTitle)}&index=${episodeIndex}&source=${encodeURIComponent(sourceName)}`;
-
-  // 在新标签页中打开播放页面
-  window.open(playerUrl, '_blank');
+    if (!url) {
+        showToast('无效的视频链接', 'error');
+        return;
+    }
+    
+    // 获取当前视频来源名称（从模态框标题中提取）
+    let sourceName = '';
+    const modalTitle = document.getElementById('modalTitle');
+    if (modalTitle) {
+        const sourceSpan = modalTitle.querySelector('span.text-gray-400');
+        if (sourceSpan) {
+            // 提取括号内的来源名称, 例如从 "(黑木耳)" 提取 "黑木耳"
+            const sourceText = sourceSpan.textContent;
+            const match = sourceText.match(/\(([^)]+)\)/);
+            if (match && match[1]) {
+                sourceName = match[1].trim();
+            }
+        }
+    }
+    
+    // 保存当前状态到localStorage，让播放页面可以获取
+    const currentVideoTitle = vod_name;
+    localStorage.setItem('currentVideoTitle', currentVideoTitle);
+    localStorage.setItem('currentEpisodeIndex', episodeIndex);
+    localStorage.setItem('currentEpisodes', JSON.stringify(currentEpisodes));
+    localStorage.setItem('episodesReversed', episodesReversed);
+    
+    // 构建视频信息对象，使用标题作为唯一标识
+    const videoTitle = vod_name || currentVideoTitle;
+    const videoInfo = {
+        title: videoTitle,
+        url: url,
+        episodeIndex: episodeIndex,
+        sourceName: sourceName,
+        timestamp: Date.now(),
+        // 重要：将完整的剧集信息也添加到历史记录中
+        episodes: currentEpisodes && currentEpisodes.length > 0 ? [...currentEpisodes] : []
+    };
+    
+    // 保存到观看历史，添加sourceName
+    if (typeof addToViewingHistory === 'function') {
+        addToViewingHistory(videoInfo);
+    }
+    
+    // 构建播放页面URL，传递必要参数
+    const playerUrl = `player.html?url=${encodeURIComponent(url)}&title=${encodeURIComponent(videoTitle)}&index=${episodeIndex}&source=${encodeURIComponent(sourceName)}`;
+    
+    // 在新标签页中打开播放页面
+    window.open(playerUrl, '_blank');
 }
 
 // 播放上一集
