@@ -11,62 +11,6 @@ let currentVideoTitle = '';
 // 全局变量用于倒序状态
 let episodesReversed = false;
 
-// 豆瓣榜单URL列表
-const DOUBAN_RANKINGS = [
-  {
-    title: "每月推荐电影",
-    url: "https://douban-api.shinya.click/recommended_movie"
-  },
-  {
-    title: "每月推荐剧集",
-    url: "https://douban-api.shinya.click/recommended_tv"
-  },
-  {
-    title: "影院热映",
-    url: "https://douban-api.shinya.click/movie_showing"
-  },
-  {
-    title: "实时热门电影",
-    url: "https://douban-api.shinya.click/movie_real_time_hotest"
-  },
-  {
-    title: "实时热门剧集",
-    url: "https://douban-api.shinya.click/tv_real_time_hotest"
-  },
-  {
-    title: "一周口碑电影榜",
-    url: "https://douban-api.shinya.click/movie_weekly_best"
-  },
-  {
-    title: "华语口碑剧集榜",
-    url: "https://douban-api.shinya.click/tv_chinese_best_weekly"
-  },
-  {
-    title: "全球口碑剧集榜",
-    url: "https://douban-api.shinya.click/tv_global_best_weekly"
-  },
-  {
-    title: "热播新剧国产剧",
-    url: "https://douban-api.shinya.click/tv_domestic"
-  },
-  {
-    title: "热播新剧欧美剧",
-    url: "https://douban-api.shinya.click/tv_american"
-  },
-  {
-    title: "热播新剧日剧",
-    url: "https://douban-api.shinya.click/tv_japanese"
-  },
-  {
-    title: "热播新剧韩剧",
-    url: "https://douban-api.shinya.click/tv_korean"
-  },
-  {
-    title: "热播新剧动画",
-    url: "https://douban-api.shinya.click/tv_animation"
-  }
-];
-
 // 页面初始化
 document.addEventListener('DOMContentLoaded', function () {
   // 初始化API复选框
@@ -80,9 +24,6 @@ document.addEventListener('DOMContentLoaded', function () {
 
   // 渲染搜索历史
   renderSearchHistory();
-
-  // 加载豆瓣榜单
-  loadDoubanRankings();
 
   // 设置默认API选择（如果是第一次加载）
   if (!localStorage.getItem('hasInitializedDefaults')) {
@@ -110,352 +51,18 @@ document.addEventListener('DOMContentLoaded', function () {
     adFilterToggle.checked = localStorage.getItem(PLAYER_CONFIG.adFilteringStorage) !== 'false'; // 默认为true
   }
 
+  // 设置豆瓣推荐开关初始状态
+  const doubanToggle = document.getElementById('doubanToggle');
+  if (doubanToggle) {
+    doubanToggle.checked = localStorage.getItem('doubanEnabled') !== 'true';
+  }
+
   // 设置事件监听器
   setupEventListeners();
 
   // 初始检查成人API选中状态
   setTimeout(checkAdultAPIsSelected, 100);
 });
-
-// 加载豆瓣榜单
-async function loadDoubanRankings() {
-  const rankingsContainer = document.querySelector('#doubanRankings .grid');
-  if (!rankingsContainer) return;
-
-  // 清空容器
-  rankingsContainer.innerHTML = '';
-
-  // 为每个榜单创建占位容器
-  DOUBAN_RANKINGS.forEach((ranking, index) => {
-    const rankingElement = document.createElement('div');
-    rankingElement.className = 'bg-[#111] rounded-lg p-4 shadow-lg';
-    rankingElement.id = `ranking-${index}`;
-
-    // 添加骨架屏 - 移除标题的text-center类
-    rankingElement.innerHTML = `
-            <h4 class="text-lg font-semibold mb-3 w-auto">${ranking.title}</h4>
-            <div class="grid grid-cols-3 gap-2">
-                ${Array(9).fill(0).map(() => `
-                    <div class="animate-pulse">
-                        <div class="aspect-[2/3] bg-gray-700 rounded-lg"></div>
-                        <div class="mt-1 h-3 bg-gray-700 rounded w-3/4 mx-auto"></div>
-                    </div>
-                `).join('')}
-            </div>
-        `;
-
-    rankingsContainer.appendChild(rankingElement);
-
-    // 异步加载每个榜单
-    loadSingleRanking(ranking, index);
-  });
-}
-
-// 加载单个榜单
-async function loadSingleRanking(ranking, index) {
-  try {
-    const response = await fetch(PROXY_URL + encodeURIComponent(ranking.url));
-    const data = await response.json();
-
-    // 获取榜单容器
-    const rankingElement = document.getElementById(`ranking-${index}`);
-    if (!rankingElement) return;
-
-    // 保留标题
-    const title = ranking.title;
-
-    // 获取所有电影
-    const moviesToShow = data.items || [];
-
-    // 创建电影列表容器，不使用滚动条
-    const moviesList = document.createElement('div');
-    moviesList.className = 'grid grid-cols-3 gap-2';
-    moviesList.id = `movies-list-${index}`;
-
-    // 每页显示9个电影（3行3列）
-    const itemsPerPage = 9;
-    const totalPages = Math.ceil(moviesToShow.length / itemsPerPage);
-
-    // 创建一个数据属性存储所有电影数据
-    rankingElement.dataset.allMovies = JSON.stringify(moviesToShow);
-    rankingElement.dataset.currentPage = "1";
-    rankingElement.dataset.totalPages = totalPages.toString();
-
-    // 显示第一页电影
-    renderMoviesPage(moviesToShow, moviesList, 1, itemsPerPage);
-
-    // 更新榜单内容
-    rankingElement.innerHTML = '';
-
-    //    const titleElement = document.createElement('h4');
-    //    titleElement.className = 'text-lg font-semibold mb-3 w-auto';
-    //    titleElement.textContent = title;
-    //    rankingElement.appendChild(titleElement);
-
-    // 创建一个flex容器，但使用justify-start而不是justify-between
-    const contentContainer = document.createElement('div');
-    contentContainer.className = 'flex flex-col h-full justify-start';
-    rankingElement.appendChild(contentContainer);
-
-    // 添加榜单标题 - 移除text-center类
-    const titleElement = document.createElement('h4');
-    titleElement.className = 'text-lg font-semibold mb-3 w-auto';
-    titleElement.textContent = title;
-    titleElement.style.alignSelf = 'baseline'
-    contentContainer.appendChild(titleElement);
-
-    // 添加电影列表
-    contentContainer.appendChild(moviesList);
-
-    // 添加一个占位空间，将分页控制推到底部
-    const spacer = document.createElement('div');
-    spacer.className = 'flex-grow';
-    contentContainer.appendChild(spacer);
-
-    // 添加分页控制容器 - 无论是否有多页都添加
-    const paginationControls = document.createElement('div');
-    paginationControls.className = 'flex justify-center items-center mt-3 space-x-2';
-
-    // 如果只有一页，禁用两个按钮，但仍然显示1/1
-    const prevDisabled = totalPages <= 1 ? 'disabled' : '';
-    const nextDisabled = totalPages <= 1 ? 'disabled' : '';
-
-    paginationControls.innerHTML = `
-            <button class="pagination-prev text-xs text-gray-400 px-2 py-1 rounded hover:bg-gray-800 disabled:opacity-50 disabled:cursor-not-allowed" ${prevDisabled}>
-                <svg xmlns="http://www.w3.org/2000/svg" class="h-3 w-3" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7" />
-                </svg>
-            </button>
-            <span class="text-xs text-gray-400">
-                <span class="current-page">1</span>/<span class="total-pages">${totalPages || 1}</span>
-            </span>
-            <button class="pagination-next text-xs text-gray-400 px-2 py-1 rounded hover:bg-gray-800 disabled:opacity-50 disabled:cursor-not-allowed" ${nextDisabled}>
-                <svg xmlns="http://www.w3.org/2000/svg" class="h-3 w-3" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7" />
-                </svg>
-            </button>
-        `;
-
-    // 添加分页事件
-    const prevButton = paginationControls.querySelector('.pagination-prev');
-    const nextButton = paginationControls.querySelector('.pagination-next');
-
-    prevButton.addEventListener('click', () => {
-      const currentPage = parseInt(rankingElement.dataset.currentPage);
-      if (currentPage > 1) {
-        changePage(rankingElement, currentPage - 1, itemsPerPage);
-      }
-    });
-
-    nextButton.addEventListener('click', () => {
-      const currentPage = parseInt(rankingElement.dataset.currentPage);
-      const totalPages = parseInt(rankingElement.dataset.totalPages);
-      if (currentPage < totalPages) {
-        changePage(rankingElement, currentPage + 1, itemsPerPage);
-      }
-    });
-
-    contentContainer.appendChild(paginationControls);
-
-  } catch (error) {
-    console.error(`获取榜单 ${ranking.title} 失败:`, error);
-
-    // 获取榜单容器
-    const rankingElement = document.getElementById(`ranking-${index}`);
-    if (!rankingElement) return;
-
-    // 显示错误信息 - 移除标题的text-center类
-    rankingElement.innerHTML = `
-            <h4 class="text-lg font-semibold mb-3">${ranking.title}</h4>
-            <div class="text-center py-4">
-                <p class="text-gray-400">获取榜单数据失败，请稍后再试</p>
-            </div>
-        `;
-  }
-}
-
-// 渲染指定页的电影
-function renderMoviesPage(allMovies, container, page, itemsPerPage) {
-  container.innerHTML = '';
-
-  const startIndex = (page - 1) * itemsPerPage;
-  const endIndex = Math.min(startIndex + itemsPerPage, allMovies.length);
-  const moviesToShow = allMovies.slice(startIndex, endIndex);
-
-  // 计算需要添加的占位卡片数量
-  const placeholdersNeeded = itemsPerPage - moviesToShow.length;
-
-  // 渲染实际的电影卡片
-  moviesToShow.forEach(movie => {
-    const movieCard = document.createElement('div');
-    movieCard.className = 'relative cursor-pointer transition-transform hover:scale-105';
-    movieCard.setAttribute('data-title', movie.title);
-    movieCard.setAttribute('data-description', movie.description || '');
-
-    // 添加点击事件，将电影名称填入搜索框并发起搜索
-    movieCard.addEventListener('click', () => {
-      const searchInput = document.getElementById('searchInput');
-      if (searchInput) {
-        searchInput.value = movie.title;
-        search();
-      }
-    });
-
-    // 电影海报 - 如果没有海报URL，使用兜底图片并尝试异步搜索封面
-    const hasPoster = movie.posterUrl && movie.posterUrl.startsWith('http');
-    const posterUrl = hasPoster ? movie.posterUrl : `data:image/png;base64,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`;
-    movieCard.innerHTML = `
-            <div class="aspect-[2/3] overflow-hidden rounded-lg">
-                <img src="${posterUrl}" alt="${movie.title}" 
-                     class="w-full h-full object-cover" 
-                     onerror="this.onerror=null;" data-movie-title="${movie.title}">
-            </div>
-            <div class="mt-1 text-center">
-                <p class="text-xs truncate" title="${movie.title}">${movie.title}</p>
-            </div>
-            <div class="absolute inset-0 bg-black bg-opacity-80 opacity-0 hover:opacity-100 transition-opacity flex items-center justify-center p-2 rounded-lg">
-                <p class="text-xs text-center text-white">${movie.description || movie.title}</p>
-            </div>
-        `;
-    // 如果没有海报URL，尝试异步搜索封面
-    if (!hasPoster) {
-      fetchPosterForMovie(movie.title, movieCard);
-    }
-    container.appendChild(movieCard);
-  });
-
-  // 添加占位卡片以保持布局一致
-  for (let i = 0; i < placeholdersNeeded; i++) {
-    const placeholderCard = document.createElement('div');
-    placeholderCard.className = 'relative invisible'; // 不可见但占据空间
-    placeholderCard.innerHTML = `
-            <div class="aspect-[2/3] overflow-hidden rounded-lg">
-                <div class="w-full h-full bg-transparent"></div>
-            </div>
-            <div class="mt-1 text-center">
-                <p class="text-xs truncate">&nbsp;</p>
-            </div>
-        `;
-
-    container.appendChild(placeholderCard);
-  }
-}
-
-// 新增函数：为没有海报的电影异步获取封面 - 优化为并发请求
-async function fetchPosterForMovie(movieTitle, movieCard) {
-  if (!movieTitle || selectedAPIs.length === 0) return;
-
-  try {
-    // 创建一个 AbortController 用于在找到结果后取消其他请求
-    const mainController = new AbortController();
-    const mainSignal = mainController.signal;
-    
-    // 创建所有 API 请求的 Promise 数组
-    const searchPromises = selectedAPIs.map(async (apiId) => {
-      try {
-        let apiUrl;
-
-        // 处理自定义API
-        if (apiId.startsWith('custom_')) {
-          const customIndex = apiId.replace('custom_', '');
-          const customApi = getCustomApiInfo(customIndex);
-          if (!customApi) return null;
-
-          apiUrl = customApi.url + API_CONFIG.search.path + encodeURIComponent(movieTitle);
-        } else {
-          // 内置API
-          if (!API_SITES[apiId]) return null;
-          apiUrl = API_SITES[apiId].api + API_CONFIG.search.path + encodeURIComponent(movieTitle);
-        }
-
-        // 为每个请求创建独立的超时控制
-        const controller = new AbortController();
-        // 合并主信号和超时信号
-        const combinedSignal = AbortSignal.any([mainSignal, controller.signal]);
-        
-        // 设置5秒超时
-        const timeoutId = setTimeout(() => controller.abort(), 5000);
-
-        const response = await fetch(PROXY_URL + encodeURIComponent(apiUrl), {
-          headers: API_CONFIG.search.headers,
-          signal: combinedSignal
-        });
-
-        clearTimeout(timeoutId);
-
-        if (!response.ok) return null;
-
-        const data = await response.json();
-
-        if (!data || !data.list || !Array.isArray(data.list) || data.list.length === 0) return null;
-
-        // 获取第一个结果的海报
-        const firstResult = data.list[0];
-        if (firstResult && firstResult.vod_pic && firstResult.vod_pic.startsWith('http')) {
-          return firstResult.vod_pic;
-        }
-        
-        return null;
-      } catch (error) {
-        // 忽略被中止的请求错误
-        if (error.name !== 'AbortError') {
-          console.warn(`获取电影 ${movieTitle} 的海报失败 (${apiId}):`, error);
-        }
-        return null;
-      }
-    });
-
-    // 修改：使用 Promise.all 和过滤方式处理结果，确保只要有一个有效结果就能使用
-    Promise.all(searchPromises)
-      .then(results => {
-        // 过滤出有效的海报URL
-        const validPosterUrls = results.filter(url => url !== null);
-        
-        // 如果有有效的海报URL，使用第一个
-        if (validPosterUrls.length > 0) {
-          const posterUrl = validPosterUrls[0];
-          // 找到海报，更新DOM
-          const imgElement = movieCard.querySelector(`img[data-movie-title="${movieTitle}"]`);
-          if (imgElement && !imgElement.src.startsWith('http')) {
-            imgElement.src = posterUrl;
-          }
-          // 中止所有其他请求
-          mainController.abort();
-        }
-      })
-      .catch(error => {
-        console.warn(`获取电影 ${movieTitle} 的海报失败:`, error);
-      });
-  } catch (error) {
-    console.warn(`获取电影 ${movieTitle} 的海报失败:`, error);
-  }
-}
-
-// 切换页面
-function changePage(rankingElement, newPage, itemsPerPage) {
-  // 更新当前页码
-  rankingElement.dataset.currentPage = newPage.toString();
-
-  // 获取电影数据
-  const allMovies = JSON.parse(rankingElement.dataset.allMovies);
-  const totalPages = parseInt(rankingElement.dataset.totalPages);
-
-  // 获取电影列表容器
-  const moviesList = rankingElement.querySelector(`div[id^="movies-list-"]`);
-  if (!moviesList) return;
-
-  // 渲染新页面
-  renderMoviesPage(allMovies, moviesList, newPage, itemsPerPage);
-
-  // 更新分页控制按钮状态
-  const prevButton = rankingElement.querySelector('.pagination-prev');
-  const nextButton = rankingElement.querySelector('.pagination-next');
-  const currentPageSpan = rankingElement.querySelector('.current-page');
-
-  if (prevButton) prevButton.disabled = newPage <= 1;
-  if (nextButton) nextButton.disabled = newPage >= totalPages;
-  if (currentPageSpan) currentPageSpan.textContent = newPage.toString();
-}
 
 // 初始化API复选框
 function initAPICheckboxes() {
@@ -934,30 +541,37 @@ function setupEventListeners() {
       localStorage.setItem(PLAYER_CONFIG.adFilteringStorage, e.target.checked);
     });
   }
+
+  // 豆瓣推荐开关事件绑定
+  const doubanToggle = document.getElementById('doubanToggle');
+  if (doubanToggle) {
+    doubanToggle.addEventListener('change', function (e) {
+      localStorage.setItem('doubanEnabled', e.target.checked);
+    });
+  }
 }
 
 // 重置搜索区域
 function resetSearchArea() {
-  // 清理搜索结果
-  document.getElementById('results').innerHTML = '';
-  document.getElementById('searchInput').value = '';
-
-  // 恢复搜索区域的样式
-  document.getElementById('searchArea').classList.add('flex-1');
-  document.getElementById('searchArea').classList.remove('mb-8');
-  document.getElementById('resultsArea').classList.add('hidden');
-
-  // 显示豆瓣榜单区域
-  const doubanRankings = document.getElementById('doubanRankings');
-  if (doubanRankings) {
-    doubanRankings.classList.remove('hidden');
-  }
-
-  // 确保页脚正确显示，移除相对定位
-  const footer = document.querySelector('.footer');
-  if (footer) {
-    footer.style.position = '';
-  }
+    // 清理搜索结果
+    document.getElementById('results').innerHTML = '';
+    document.getElementById('searchInput').value = '';
+    
+    // 恢复搜索区域的样式
+    document.getElementById('searchArea').classList.add('flex-1');
+    document.getElementById('searchArea').classList.remove('mb-8');
+    document.getElementById('resultsArea').classList.add('hidden');
+    
+    // 确保页脚正确显示，移除相对定位
+    const footer = document.querySelector('.footer');
+    if (footer) {
+        footer.style.position = '';
+    }
+    
+    // 如果有豆瓣功能，检查是否需要显示豆瓣推荐区域
+    if (typeof updateDoubanVisibility === 'function') {
+        updateDoubanVisibility();
+    }
 }
 
 // 获取自定义API信息
@@ -978,107 +592,113 @@ async function search() {
             return;
         }
     }
-  const query = document.getElementById('searchInput').value.trim();
-
-  if (!query) {
-    showToast('请输入搜索内容', 'info');
-    return;
-  }
-
-  if (selectedAPIs.length === 0) {
-    showToast('请至少选择一个API源', 'warning');
-    return;
-  }
-
-  showLoading();
-
-  try {
-    // 保存搜索历史
-    saveSearchHistory(query);
-
-    // 隐藏豆瓣榜单区域
-    const doubanRankings = document.getElementById('doubanRankings');
-    if (doubanRankings) {
-      doubanRankings.classList.add('hidden');
+    const query = document.getElementById('searchInput').value.trim();
+    
+    if (!query) {
+        showToast('请输入搜索内容', 'info');
+        return;
     }
-
-    // 从所有选中的API源搜索
-    let allResults = [];
-    const searchPromises = selectedAPIs.map(async (apiId) => {
-      try {
-        let apiUrl, apiName;
-
-        // 处理自定义API
-        if (apiId.startsWith('custom_')) {
-          const customIndex = apiId.replace('custom_', '');
-          const customApi = getCustomApiInfo(customIndex);
-          if (!customApi) return [];
-
-          apiUrl = customApi.url + API_CONFIG.search.path + encodeURIComponent(query);
-          apiName = customApi.name;
-        } else {
-          // 内置API
-          if (!API_SITES[apiId]) return [];
-          apiUrl = API_SITES[apiId].api + API_CONFIG.search.path + encodeURIComponent(query);
-          apiName = API_SITES[apiId].name;
-        }
-
-        // 添加超时处理
-        const controller = new AbortController();
-        const timeoutId = setTimeout(() => controller.abort(), 8000);
-
-        const response = await fetch(PROXY_URL + encodeURIComponent(apiUrl), {
-          headers: API_CONFIG.search.headers,
-          signal: controller.signal
+    
+    if (selectedAPIs.length === 0) {
+        showToast('请至少选择一个API源', 'warning');
+        return;
+    }
+    
+    showLoading();
+    
+    try {
+        // 保存搜索历史
+        saveSearchHistory(query);
+        
+        // 从所有选中的API源搜索
+        let allResults = [];
+        const searchPromises = selectedAPIs.map(async (apiId) => {
+            try {
+                let apiUrl, apiName;
+                
+                // 处理自定义API
+                if (apiId.startsWith('custom_')) {
+                    const customIndex = apiId.replace('custom_', '');
+                    const customApi = getCustomApiInfo(customIndex);
+                    if (!customApi) return [];
+                    
+                    apiUrl = customApi.url + API_CONFIG.search.path + encodeURIComponent(query);
+                    apiName = customApi.name;
+                } else {
+                    // 内置API
+                    if (!API_SITES[apiId]) return [];
+                    apiUrl = API_SITES[apiId].api + API_CONFIG.search.path + encodeURIComponent(query);
+                    apiName = API_SITES[apiId].name;
+                }
+                
+                // 添加超时处理
+                const controller = new AbortController();
+                const timeoutId = setTimeout(() => controller.abort(), 8000);
+                
+                const response = await fetch(PROXY_URL + encodeURIComponent(apiUrl), {
+                    headers: API_CONFIG.search.headers,
+                    signal: controller.signal
+                });
+                
+                clearTimeout(timeoutId);
+                
+                if (!response.ok) {
+                    return [];
+                }
+                
+                const data = await response.json();
+                
+                if (!data || !data.list || !Array.isArray(data.list) || data.list.length === 0) {
+                    return [];
+                }
+                
+                // 添加源信息到每个结果
+                const results = data.list.map(item => ({
+                    ...item,
+                    source_name: apiName,
+                    source_code: apiId,
+                    api_url: apiId.startsWith('custom_') ? getCustomApiInfo(apiId.replace('custom_', ''))?.url : undefined
+                }));
+                
+                return results;
+            } catch (error) {
+                console.warn(`API ${apiId} 搜索失败:`, error);
+                return [];
+            }
         });
-
-        clearTimeout(timeoutId);
-
-        if (!response.ok) {
-          return [];
+        
+        // 等待所有搜索请求完成
+        const resultsArray = await Promise.all(searchPromises);
+        
+        // 合并所有结果
+        resultsArray.forEach(results => {
+            if (Array.isArray(results) && results.length > 0) {
+                allResults = allResults.concat(results);
+            }
+        });
+        
+        // 更新搜索结果计数
+        const searchResultsCount = document.getElementById('searchResultsCount');
+        if (searchResultsCount) {
+            searchResultsCount.textContent = allResults.length;
         }
-
-        const data = await response.json();
-
-        if (!data || !data.list || !Array.isArray(data.list) || data.list.length === 0) {
-          return [];
+        
+        // 显示结果区域，调整搜索区域
+        document.getElementById('searchArea').classList.remove('flex-1');
+        document.getElementById('searchArea').classList.add('mb-8');
+        document.getElementById('resultsArea').classList.remove('hidden');
+        
+        // 隐藏豆瓣推荐区域（如果存在）
+        const doubanArea = document.getElementById('doubanArea');
+        if (doubanArea) {
+            doubanArea.classList.add('hidden');
         }
-
-        // 添加源信息到每个结果
-        const results = data.list.map(item => ({
-          ...item,
-          source_name: apiName,
-          source_code: apiId,
-          api_url: apiId.startsWith('custom_') ? getCustomApiInfo(apiId.replace('custom_', ''))?.url : undefined
-        }));
-
-        return results;
-      } catch (error) {
-        console.warn(`API ${apiId} 搜索失败:`, error);
-        return [];
-      }
-    });
-
-    // 等待所有搜索请求完成
-    const resultsArray = await Promise.all(searchPromises);
-
-    // 合并所有结果
-    resultsArray.forEach(results => {
-      if (Array.isArray(results) && results.length > 0) {
-        allResults = allResults.concat(results);
-      }
-    });
-
-    // 显示结果区域，调整搜索区域
-    document.getElementById('searchArea').classList.remove('flex-1');
-    document.getElementById('searchArea').classList.add('mb-8');
-    document.getElementById('resultsArea').classList.remove('hidden');
-
-    const resultsDiv = document.getElementById('results');
-
-    // 如果没有结果
-    if (!allResults || allResults.length === 0) {
-      resultsDiv.innerHTML = `
+        
+        const resultsDiv = document.getElementById('results');
+        
+        // 如果没有结果
+        if (!allResults || allResults.length === 0) {
+            resultsDiv.innerHTML = `
                 <div class="col-span-full text-center py-16">
                     <svg class="mx-auto h-12 w-12 text-gray-500" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" 
@@ -1102,25 +722,25 @@ async function search() {
       });
     }
 
-    // 添加XSS保护，使用textContent和属性转义
-    resultsDiv.innerHTML = allResults.map(item => {
-      const safeId = item.vod_id ? item.vod_id.toString().replace(/[^\w-]/g, '') : '';
-      const safeName = (item.vod_name || '').toString()
-        .replace(/</g, '&lt;')
-        .replace(/>/g, '&gt;')
-        .replace(/"/g, '&quot;');
-      const sourceInfo = item.source_name ?
-        `<span class="bg-[#222] text-xs px-2 py-1 rounded-full">${item.source_name}</span>` : '';
-      const sourceCode = item.source_code || '';
-
-      // 添加API URL属性，用于详情获取
-      const apiUrlAttr = item.api_url ?
-        `data-api-url="${item.api_url.replace(/"/g, '&quot;')}"` : '';
-
-      // 重新设计的卡片布局 - 支持更好的封面图显示
-      const hasCover = item.vod_pic && item.vod_pic.startsWith('http');
-
-      return `
+        // 添加XSS保护，使用textContent和属性转义
+        resultsDiv.innerHTML = allResults.map(item => {
+            const safeId = item.vod_id ? item.vod_id.toString().replace(/[^\w-]/g, '') : '';
+            const safeName = (item.vod_name || '').toString()
+                .replace(/</g, '&lt;')
+                .replace(/>/g, '&gt;')
+                .replace(/"/g, '&quot;');
+            const sourceInfo = item.source_name ? 
+                `<span class="bg-[#222] text-xs px-2 py-1 rounded-full">${item.source_name}</span>` : '';
+            const sourceCode = item.source_code || '';
+            
+            // 添加API URL属性，用于详情获取
+            const apiUrlAttr = item.api_url ? 
+                `data-api-url="${item.api_url.replace(/"/g, '&quot;')}"` : '';
+            
+            // 重新设计的卡片布局 - 支持更好的封面图显示
+            const hasCover = item.vod_pic && item.vod_pic.startsWith('http');
+            
+            return `
                 <div class="card-hover bg-[#111] rounded-lg overflow-hidden cursor-pointer transition-all hover:scale-[1.02] h-full" 
                      onclick="showDetails('${safeId}','${safeName}','${sourceCode}')" ${apiUrlAttr}>
                     <div class="md:flex">
@@ -1222,7 +842,6 @@ async function showDetails(id, vod_name, sourceCode) {
         
         const data = await response.json();
         
-        // ...existing code for showing details...
         const modal = document.getElementById('modal');
         const modalTitle = document.getElementById('modalTitle');
         const modalContent = document.getElementById('modalContent');
