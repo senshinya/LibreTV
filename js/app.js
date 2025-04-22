@@ -1,5 +1,5 @@
 // 全局变量
-let selectedAPIs = JSON.parse(localStorage.getItem('selectedAPIs') || '["heimuer"]'); // 默认选中黑木耳
+let selectedAPIs = JSON.parse(localStorage.getItem('selectedAPIs') || '["heimuer", "dbzy"]'); // 默认选中黑木耳和豆瓣资源
 let customAPIs = JSON.parse(localStorage.getItem('customAPIs') || '[]'); // 存储自定义API列表
 
 // 添加当前播放的集数索引
@@ -54,7 +54,7 @@ document.addEventListener('DOMContentLoaded', function () {
   // 设置豆瓣推荐开关初始状态
   const doubanToggle = document.getElementById('doubanToggle');
   if (doubanToggle) {
-    doubanToggle.checked = localStorage.getItem('doubanEnabled') !== 'true';
+    doubanToggle.checked = localStorage.getItem('doubanEnabled') !== 'false';
   }
 
   // 设置事件监听器

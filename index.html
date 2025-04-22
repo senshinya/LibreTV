@@ -199,16 +199,23 @@
                 <p class="text-gray-400 mb-8">自由观影，畅享精彩</p>
             </header>
             
-            <!-- 搜索区域：默认居中 -->
+
             <div id="searchArea" class="flex-1 flex flex-col items-center justify-center">
-                <h2 class="text-3xl font-bold gradient-text mb-8">视频搜索</h2>
                 <div class="w-full max-w-2xl">
-                    <div class="flex">
+                    <div class="flex items-center mb-3">
+                        <!-- 首页按钮 -->
+                        <button onclick="resetToHome()" 
+                                class="px-6 py-4 bg-white text-black font-medium rounded-l-lg hover:bg-gray-200 transition-colors" 
+                                aria-label="返回首页" title="返回首页">
+                            首页
+                        </button>
+                        <!-- 搜索输入 -->
                         <input type="text" 
                                id="searchInput" 
-                               class="w-full bg-[#111] border border-[#333] text-white px-6 py-4 rounded-l-lg focus:outline-none focus:border-white transition-colors" 
-                               placeholder="搜索你喜欢的视频..."
+                               class="flex-1 bg-[#111] border border-[#333] text-white px-6 py-4 focus:outline-none transition-colors" 
+                               placeholder="搜索你喜欢的视频..." 
                                aria-label="视频搜索框">
+                        <!-- 搜索按钮 -->
                         <button onclick="search()" 
                                 class="px-8 py-4 bg-white text-black font-medium rounded-r-lg hover:bg-gray-200 transition-colors whitespace-nowrap"
                                 aria-label="搜索按钮">
@@ -220,7 +227,32 @@
                     <div id="recentSearches" class="mt-4 flex flex-wrap gap-2" aria-label="最近搜索记录">
                         <!-- 这里会动态插入最近的搜索记录 -->
                     </div>
-                    <!-- 清除历史按钮已移至搜索历史标题行 -->
+                </div>
+            </div>
+            
+            <!-- 豆瓣热门推荐区域: 默认隐藏，现在位于搜索区域下方，调整宽度 -->
+            <div id="doubanArea" class="w-full my-8 hidden">
+                <div class="mx-auto max-w-screen-xl px-2">
+                    <!-- 改进标题和标签区域布局 -->
+                    <div class="mb-4">
+                        <!-- 标题和刷新按钮一行 -->
+                        <div class="flex items-center justify-between mb-3">
+                            <h2 class="text-xl font-bold text-white">豆瓣热门</h2>
+                            <button id="douban-refresh" class="text-sm px-3 py-1 bg-pink-600 hover:bg-pink-700 text-white rounded-lg flex items-center gap-1">
+                                <span>换一批</span>
+                                <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15" />
+                                </svg>
+                            </button>
+                        </div>
+                        <!-- 分类标签独立成行，添加滚动支持以适应移动设备 -->
+                        <div class="overflow-x-auto pb-2">
+                            <div id="douban-tags" class="flex space-x-2 min-w-max"></div>
+                        </div>
+                    </div>
+                    
+                    <!-- 推荐内容 -->
+                    <div id="douban-results" class="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-6 xl:grid-cols-8 gap-3"></div>
                 </div>
             </div>
             
@@ -250,6 +282,12 @@
             
             <!-- 搜索结果：初始隐藏 -->
             <div id="resultsArea" class="w-full hidden">
+                <!-- 修改这里：移除旧的返回首页按钮 -->
+                <div class="flex justify-end items-center mb-4">
+                    <div class="text-sm text-gray-400">
+                        <span id="searchResultsCount">0</span> 个结果
+                    </div>
+                </div>
                 <!-- 添加返回主页按钮 -->
                 <div class="flex justify-between items-center mb-4">
                     <button onclick="resetToHome()" class="flex items-center gap-1 px-4 py-2 bg-gradient-to-r from-indigo-500 via-purple-500 to-pink-500 text-white rounded-lg hover:shadow-lg transition-all duration-300 transform hover:-translate-y-1">
