@@ -1,8 +1,10 @@
 // 豆瓣热门电影电视剧推荐功能
 
 // 豆瓣标签列表
-const doubanTags = ['热门', '最新', '经典', '可播放', '豆瓣高分', '冷门佳片', '华语', '欧美', '韩国', '日本'];
-let doubanCurrentTag = localStorage.getItem('doubanCurrentTag') || '热门';
+const movieTags = ['热门', '最新', '经典', '豆瓣高分', '冷门佳片', '华语', '欧美', '韩国', '日本', '动作', '喜剧', '爱情', '科幻', '悬疑', '恐怖', '治愈'];
+const tvTags = ['热门', '美剧', '英剧', '韩剧', '日剧', '国产剧', '港剧', '日本动画', '综艺', '纪录片']
+let doubanMovieTvCurrentSwitch = 'movie';
+let doubanCurrentTag = '热门';
 let doubanPageStart = 0;
 const doubanPageSize = 16; // 一次显示的项目数量
 
@@ -43,6 +45,9 @@ function initDouban() {
         // 初始更新显示状态
         updateDoubanVisibility();
     }
+
+    // 渲染电影/电视剧切换
+    renderDoubanMovieTvSwitch();
     
     // 渲染豆瓣标签
     renderDoubanTags();
@@ -160,14 +165,74 @@ function fillAndSearchWithDouban(title) {
     }
 }
 
+// 渲染电影/电视剧切换器
+function renderDoubanMovieTvSwitch() {
+    // 获取切换按钮元素
+    const movieToggle = document.getElementById('douban-movie-toggle');
+    const tvToggle = document.getElementById('douban-tv-toggle');
+
+    if (!movieToggle ||!tvToggle) return;
+
+    movieToggle.addEventListener('click', function() {
+        if (doubanMovieTvCurrentSwitch !== 'movie') {
+            // 更新按钮样式
+            movieToggle.classList.add('bg-pink-600', 'text-white');
+            movieToggle.classList.remove('text-gray-300');
+            
+            tvToggle.classList.remove('bg-pink-600', 'text-white');
+            tvToggle.classList.add('text-gray-300');
+            
+            doubanMovieTvCurrentSwitch = 'movie';
+            doubanCurrentTag = '热门';
+
+            // 重新加载豆瓣内容
+            renderDoubanTags(movieTags);
+
+            // 换一批按钮事件监听
+            setupDoubanRefreshBtn();
+            
+            // 初始加载热门内容
+            if (localStorage.getItem('doubanEnabled') === 'true') {
+                renderRecommend(doubanCurrentTag, doubanPageSize, doubanPageStart);
+            }
+        }
+    });
+    
+    // 电视剧按钮点击事件
+    tvToggle.addEventListener('click', function() {
+        if (doubanMovieTvCurrentSwitch !== 'tv') {
+            // 更新按钮样式
+            tvToggle.classList.add('bg-pink-600', 'text-white');
+            tvToggle.classList.remove('text-gray-300');
+            
+            movieToggle.classList.remove('bg-pink-600', 'text-white');
+            movieToggle.classList.add('text-gray-300');
+            
+            doubanMovieTvCurrentSwitch = 'tv';
+            doubanCurrentTag = '热门';
+
+            // 重新加载豆瓣内容
+            renderDoubanTags(tvTags);
+
+            // 换一批按钮事件监听
+            setupDoubanRefreshBtn();
+            
+            // 初始加载热门内容
+            if (localStorage.getItem('doubanEnabled') === 'true') {
+                renderRecommend(doubanCurrentTag, doubanPageSize, doubanPageStart);
+            }
+        }
+    });
+}
+
 // 渲染豆瓣标签选择器
-function renderDoubanTags() {
+function renderDoubanTags(tags = movieTags) {
     const tagContainer = document.getElementById('douban-tags');
     if (!tagContainer) return;
     
     tagContainer.innerHTML = '';
-    
-    doubanTags.forEach(tag => {
+
+    tags.forEach(tag => {
         const btn = document.createElement('button');
         // 更新标签样式：统一高度，添加过渡效果，改进颜色对比度
         btn.className = 'py-1.5 px-3.5 rounded text-sm font-medium transition-all duration-300 ' + 
@@ -180,10 +245,9 @@ function renderDoubanTags() {
         btn.onclick = function() {
             if (doubanCurrentTag !== tag) {
                 doubanCurrentTag = tag;
-                localStorage.setItem('doubanCurrentTag', tag);
                 doubanPageStart = 0;
                 renderRecommend(doubanCurrentTag, doubanPageSize, doubanPageStart);
-                renderDoubanTags();
+                renderDoubanTags(tags);
             }
         };
         
@@ -220,7 +284,7 @@ function renderRecommend(tag, pageLimit, pageStart) {
         </div>
     `;
     
-    const target = `https://movie.douban.com/j/search_subjects?type=movie&tag=${tag}&sort=recommend&page_limit=${pageLimit}&page_start=${pageStart}`;
+    const target = `https://movie.douban.com/j/search_subjects?type=${doubanMovieTvCurrentSwitch}&tag=${tag}&sort=recommend&page_limit=${pageLimit}&page_start=${pageStart}`;
     
     // 添加超时控制
     const controller = new AbortController();

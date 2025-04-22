@@ -231,8 +231,15 @@
                     <!-- 改进标题和标签区域布局 -->
                     <div class="mb-4">
                         <!-- 标题和刷新按钮一行 -->
-                        <div class="flex items-center justify-between mb-3">
-                            <h2 class="text-xl font-bold text-white">豆瓣热门</h2>
+                        <div class="flex items-center justify-between mb-4">
+                            <div class="flex items-center">
+                                <h2 class="text-xl font-bold text-white mr-4">豆瓣热门</h2>
+                                <!-- 添加电影/电视剧切换开关 -->
+                                <div class="flex items-center bg-[#222] rounded-full p-1">
+                                    <button id="douban-movie-toggle" class="px-3 py-1 text-sm rounded-full bg-pink-600 text-white">电影</button>
+                                    <button id="douban-tv-toggle" class="px-3 py-1 text-sm rounded-full text-gray-300 hover:text-white">电视剧</button>
+                                </div>
+                            </div>
                             <button id="douban-refresh" class="text-sm px-3 py-1 bg-pink-600 hover:bg-pink-700 text-white rounded-lg flex items-center gap-1">
                                 <span>换一批</span>
                                 <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
