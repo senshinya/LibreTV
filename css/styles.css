@@ -54,11 +54,11 @@ button, .card-hover {
 
 /* 针对不同长度的标题优化显示 */
 .card-hover h3 {
-    min-height: 3rem;  /* 至少能显示2行标题 */
+    min-height: 3rem;
     display: -webkit-box;
     -webkit-box-orient: vertical;
     overflow: hidden;
-    -webkit-line-clamp: 2; /* 最多显示2行 */
+    -webkit-line-clamp: 2;
 }
 
 .card-hover::before {

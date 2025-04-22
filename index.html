@@ -132,7 +132,7 @@
             
             <!-- 内容过滤设置区域 -->
             <div class="p-3 bg-[#151515] rounded-lg shadow-inner">
-                <label class="block text-sm font-medium text-gray-400 mb-3 border-b border-[#333] pb-1">内容过滤</label>
+                <label class="block text-sm font-medium text-gray-400 mb-3 border-b border-[#333] pb-1">功能开关</label>
                 
                 <!-- 黄色内容过滤开关 -->
                 <div class="flex flex-col mb-3 pb-3 border-b border-[#222] relative">
@@ -151,7 +151,7 @@
                 </div>
                 
                 <!-- 广告过滤开关 -->
-                <div class="flex items-center justify-between">
+                <div class="flex items-center justify-between mb-3 pb-3 border-b border-[#222]">
                     <div>
                         <label class="text-sm font-medium text-gray-400">分片广告过滤</label>
                         <p class="text-xs text-gray-500 mt-1">关闭可减少旧版浏览器卡顿</p>
@@ -162,11 +162,6 @@
                         <div class="toggle-dot absolute w-5 h-5 bg-white rounded-full top-0.5 left-0.5 transition-transform duration-300 ease-in-out"></div>
                     </div>
                 </div>
-            </div>
-            
-            <!-- 豆瓣设置区域 (移出内容过滤区) -->
-            <div class="mt-3 p-3 bg-[#151515] rounded-lg shadow-inner">
-                <label class="block text-sm font-medium text-gray-400 mb-3 border-b border-[#333] pb-1">内容推荐</label>
                 
                 <!-- 豆瓣热门开关 -->
                 <div class="flex items-center justify-between">
@@ -258,13 +253,15 @@
             
             <!-- 搜索结果：初始隐藏 -->
             <div id="resultsArea" class="w-full hidden">
-                <!-- 修改这里：移除旧的返回首页按钮 -->
-                <div class="flex justify-end items-center mb-4">
-                    <div class="text-sm text-gray-400">
-                        <span id="searchResultsCount">0</span> 个结果
+                <div class="mx-auto max-w-7xl px-2"> <!-- 添加最大宽度限制并居中 -->
+                    <div class="flex justify-end items-center mb-4">
+                        <div class="text-sm text-gray-400">
+                            <span id="searchResultsCount">0</span> 个结果
+                        </div>
                     </div>
-                </div>
-                <div id="results" class="grid grid-cols-1 md:grid-cols-3 lg:grid-cols-4 gap-6">
+                    <div id="results" class="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 xl:grid-cols-6 gap-3">
+                        <!-- 结果将在这里动态生成 -->
+                    </div>
                 </div>
             </div>
         </div>
