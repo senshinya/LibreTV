@@ -466,35 +466,27 @@ function playFromHistory(url, title, episodeIndex, playbackPosition = 0) {
             }
         }
         
+        // 将剧集列表保存到localStorage，避免过长的URL
+        if (episodesList.length > 0) {
+            localStorage.setItem('currentEpisodes', JSON.stringify(episodesList));
+            console.log(`已将剧集列表保存到localStorage，共 ${episodesList.length} 集`);
+        }
         // 构造带播放进度参数的URL
         const positionParam = playbackPosition > 10 ? `&position=${Math.floor(playbackPosition)}` : '';
-        // 构造集数参数（如果有）
-        const episodesParam = episodesList.length > 0 ? 
-            `&episodes=${encodeURIComponent(JSON.stringify(episodesList))}` : '';
         
         if (url.includes('?')) {
-            // URL已有参数，确保包含必要参数
+            // URL已有参数，添加索引和位置参数
             let playUrl = url;
-            
-            // 添加集数参数（如果没有）
             if (!url.includes('index=') && episodeIndex > 0) {
                 playUrl += `&index=${episodeIndex}`;
             }
-            
-            // 添加播放位置参数
             if (playbackPosition > 10) {
                 playUrl += positionParam;
             }
-            
-            // 添加集数列表参数
-            if (episodesList.length > 0 && !url.includes('episodes=')) {
-                playUrl += episodesParam;
-            }
-            
             window.open(playUrl, '_blank');
         } else {
-            // 原始URL，添加完整参数
-            const playerUrl = `player.html?url=${encodeURIComponent(url)}&title=${encodeURIComponent(title)}&index=${episodeIndex}${positionParam}${episodesParam}`;
+            // 原始URL，构造player页面链接
+            const playerUrl = `player.html?url=${encodeURIComponent(url)}&title=${encodeURIComponent(title)}&index=${episodeIndex}${positionParam}`;
             window.open(playerUrl, '_blank');
         }
     } catch (e) {
