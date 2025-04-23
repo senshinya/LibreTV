@@ -1,8 +1,8 @@
 // 豆瓣热门电影电视剧推荐功能
 
 // 豆瓣标签列表
-const movieTags = ['热门', '最新', '经典', '豆瓣高分', '冷门佳片', '华语', '欧美', '韩国', '日本', '动作', '喜剧', '爱情', '科幻', '悬疑', '恐怖', '治愈'];
-const tvTags = ['热门', '美剧', '英剧', '韩剧', '日剧', '国产剧', '港剧', '日本动画', '综艺', '纪录片']
+let movieTags = ['热门', '最新', '经典', '豆瓣高分', '冷门佳片', '华语', '欧美', '韩国', '日本', '动作', '喜剧', '爱情', '科幻', '悬疑', '恐怖', '治愈'];
+let tvTags = ['热门', '美剧', '英剧', '韩剧', '日剧', '国产剧', '港剧', '日本动画', '综艺', '纪录片']
 let doubanMovieTvCurrentSwitch = 'movie';
 let doubanCurrentTag = '热门';
 let doubanPageStart = 0;
@@ -45,6 +45,9 @@ function initDouban() {
         // 初始更新显示状态
         updateDoubanVisibility();
     }
+
+    // 获取豆瓣热门标签
+    fetchDoubanTags();
 
     // 渲染电影/电视剧切换
     renderDoubanMovieTvSwitch();
@@ -271,6 +274,25 @@ function setupDoubanRefreshBtn() {
     };
 }
 
+function fetchDoubanTags() {
+    const movieTagsTarget = `https://movie.douban.com/j/search_tags?type=movie`
+    fetchDoubanData(movieTagsTarget)
+        .then(data => {
+            movieTags = data.tags;
+        })
+        .catch(error => {
+            console.error("获取豆瓣热门电影标签失败：", error);
+        });
+    const tvTagsTarget = `https://movie.douban.com/j/search_tags?type=tv`
+    fetchDoubanData(tvTagsTarget)
+       .then(data => {
+            tvTags = data.tags;
+        })
+       .catch(error => {
+            console.error("获取豆瓣热门电视剧标签失败：", error);
+        });
+}
+
 // 渲染热门推荐内容
 function renderRecommend(tag, pageLimit, pageStart) {
     const container = document.getElementById("douban-results");
@@ -286,6 +308,23 @@ function renderRecommend(tag, pageLimit, pageStart) {
     
     const target = `https://movie.douban.com/j/search_subjects?type=${doubanMovieTvCurrentSwitch}&tag=${tag}&sort=recommend&page_limit=${pageLimit}&page_start=${pageStart}`;
     
+    // 使用通用请求函数
+    fetchDoubanData(target)
+        .then(data => {
+            renderDoubanCards(data, container);
+        })
+        .catch(error => {
+            console.error("获取豆瓣数据失败：", error);
+            container.innerHTML = `
+                <div class="col-span-full text-center py-8">
+                    <div class="text-red-400">❌ 获取豆瓣数据失败，请稍后重试</div>
+                    <div class="text-gray-500 text-sm mt-2">提示：使用VPN可能有助于解决此问题</div>
+                </div>
+            `;
+        });
+}
+
+async function fetchDoubanData(url) {
     // 添加超时控制
     const controller = new AbortController();
     const timeoutId = setTimeout(() => controller.abort(), 10000); // 10秒超时
@@ -300,48 +339,42 @@ function renderRecommend(tag, pageLimit, pageStart) {
         }
     };
 
-    // 尝试直接访问（豆瓣API可能允许部分CORS请求）
-    fetch(PROXY_URL + encodeURIComponent(target), fetchOptions)
-        .then(response => {
-            clearTimeout(timeoutId);
-            if (!response.ok) {
-                throw new Error(`HTTP error! Status: ${response.status}`);
+    try {
+        // 尝试直接访问（豆瓣API可能允许部分CORS请求）
+        const response = await fetch(PROXY_URL + encodeURIComponent(url), fetchOptions);
+        clearTimeout(timeoutId);
+        
+        if (!response.ok) {
+            throw new Error(`HTTP error! Status: ${response.status}`);
+        }
+        
+        return await response.json();
+    } catch (err) {
+        console.error("豆瓣 API 请求失败（直接代理）：", err);
+        
+        // 失败后尝试备用方法：作为备选
+        const fallbackUrl = `https://api.allorigins.win/get?url=${encodeURIComponent(url)}`;
+        
+        try {
+            const fallbackResponse = await fetch(fallbackUrl);
+            
+            if (!fallbackResponse.ok) {
+                throw new Error(`备用API请求失败! 状态: ${fallbackResponse.status}`);
             }
-            return response.json();
-        })
-        .then(data => {
-            renderDoubanCards(data, container);
-        })
-        .catch(err => {
-            console.error("豆瓣 API 请求失败（直接代理）：", err);
             
-            // 失败后尝试备用方法：作为备选
-            const fallbackUrl = `https://api.allorigins.win/get?url=${encodeURIComponent(target)}`;
+            const data = await fallbackResponse.json();
             
-            fetch(fallbackUrl)
-                .then(response => {
-                    if (!response.ok) throw new Error(`备用API请求失败! 状态: ${response.status}`);
-                    return response.json();
-                })
-                .then(data => {
-                    // 解析原始内容
-                    if (data && data.contents) {
-                        const doubanData = JSON.parse(data.contents);
-                        renderDoubanCards(doubanData, container);
-                    } else {
-                        throw new Error("无法获取有效数据");
-                    }
-                })
-                .catch(fallbackErr => {
-                    console.error("豆瓣 API 备用请求也失败：", fallbackErr);
-                    container.innerHTML = `
-                        <div class="col-span-full text-center py-8">
-                            <div class="text-red-400">❌ 获取豆瓣数据失败，请稍后重试</div>
-                            <div class="text-gray-500 text-sm mt-2">提示：使用VPN可能有助于解决此问题</div>
-                        </div>
-                    `;
-                });
-        });
+            // 解析原始内容
+            if (data && data.contents) {
+                return JSON.parse(data.contents);
+            } else {
+                throw new Error("无法获取有效数据");
+            }
+        } catch (fallbackErr) {
+            console.error("豆瓣 API 备用请求也失败：", fallbackErr);
+            throw fallbackErr; // 向上抛出错误，让调用者处理
+        }
+    }
 }
 
 // 抽取渲染豆瓣卡片的逻辑到单独函数
