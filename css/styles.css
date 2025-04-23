@@ -58,7 +58,12 @@ button, .card-hover {
     display: -webkit-box;
     -webkit-box-orient: vertical;
     overflow: hidden;
+    text-overflow: ellipsis;
     -webkit-line-clamp: 2;
+    max-height: 3rem; /* 确保最多显示两行 */
+    line-height: 1.5rem; /* 设定行高以确保两行文本的一致性 */
+    word-break: break-word; /* 允许在任何字符间断行 */
+    hyphens: auto; /* 允许断词 */
 }
 
 .card-hover::before {

@@ -755,7 +755,7 @@ async function search() {
                         
                         <div class="p-2 flex flex-col flex-grow">
                             <div class="flex-grow">
-                                <h3 class="text-sm font-semibold mb-1 break-words line-clamp-2 text-center">${safeName}</h3>
+                                <h3 class="text-sm font-semibold mb-1 break-words line-clamp-2 text-center" title="${safeName}">${safeName}</h3>
                                 
                                 <div class="flex flex-wrap justify-center gap-1 mb-1">
                                     ${(item.type_name || '').toString().replace(/</g, '&lt;') ? 
