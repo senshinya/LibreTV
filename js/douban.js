@@ -279,6 +279,9 @@ function fetchDoubanTags() {
     fetchDoubanData(movieTagsTarget)
         .then(data => {
             movieTags = data.tags;
+            if (doubanMovieTvCurrentSwitch === 'movie') {
+                renderDoubanTags(movieTags);
+            }
         })
         .catch(error => {
             console.error("获取豆瓣热门电影标签失败：", error);
@@ -287,6 +290,9 @@ function fetchDoubanTags() {
     fetchDoubanData(tvTagsTarget)
        .then(data => {
             tvTags = data.tags;
+            if (doubanMovieTvCurrentSwitch === 'tv') {
+                renderDoubanTags(tvTags);
+            }
         })
        .catch(error => {
             console.error("获取豆瓣热门电视剧标签失败：", error);
