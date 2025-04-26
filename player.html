@@ -551,10 +551,12 @@
 
             detectBrowserCapabilities();
 
+            window.filterAdPattern = API_SITES[sourceCode].filterAdRule
+
             // 配置HLS.js选项
             const hlsConfig = {
                 debug: false,
-                loader: (adFilteringEnabled && API_SITES[sourceCode].filterAd !== false) ? CustomHlsJsLoader : Hls.DefaultConfig.loader,
+                loader: (adFilteringEnabled && API_SITES[sourceCode].filterAdRule) ? CustomHlsJsLoader : Hls.DefaultConfig.loader,
                 enableWorker: true,
                 lowLatencyMode: false,
                 backBufferLength: 90,
@@ -911,66 +913,9 @@
         function filterAdsFromM3U8(m3u8Content, strictMode = false) {
             if (!m3u8Content) return '';
 
-            let skipContent = false;
-            let discontinuityCount = 0;
-            let currentSegmentDuration = 0;
-            let totalOriginalDuration = 0;
-            let totalFilteredDuration = 0;
-            let segmentUrl = false
-                
-            // 按行分割M3U8内容
-            const lines = m3u8Content.split('\n');
-            const filteredLines = [];
-                
-            for (let i = 0; i < lines.length; i++) {
-                const line = lines[i].trim();
-
-                if (line.includes('#EXT-X-DISCONTINUITY')) {
-                    discontinuityCount++;
-                    if (segmentUrl) {
-                        skipContent = !skipContent;
-                    }
-                    continue;
-                }
-
-                if (line.startsWith('#EXTINF:')) {
-                    const durationMatch = line.match(/#EXTINF:(\d+(\.\d+)?)/);
-                    if (durationMatch) {
-                        currentSegmentDuration = parseFloat(durationMatch[1]);
-                        totalOriginalDuration += currentSegmentDuration;
-
-                        if (!skipContent) {
-                            totalFilteredDuration += currentSegmentDuration;
-                            filteredLines.push(line);
-                        }
-                    } else {
-                        if (!skipContent) {
-                            filteredLines.push(line);
-                        }
-                    }
-                    continue;
-                }
-                // 片段 URL 行
-                if (line.length > 0 && !line.startsWith('#')) {
-                    if (!skipContent) {
-                        filteredLines.push(line);
-                    }
-                    segmentUrl = true;
-                    currentSegmentDuration = 0;
-                    continue;
-                }
-
-                if (!skipContent || line.startsWith('#EXT')) {
-                    filteredLines.push(line);
-                }
-            }
-                
-            console.log('原始时长:', totalOriginalDuration, '过滤后时长:', totalFilteredDuration);
-            // 替换 M3U8 中的总时长标记（如果存在）
-            const filteredText = filteredLines.join('\n');
-            return filteredText.replace(/#EXT-X-TARGETDURATION:(\d+(\.\d+)?)/, (match, p1) => {
-                return `#EXT-X-TARGETDURATION:${p1}`;
-            });
+            let pattern = window.filterAdPattern;
+            const regex = new RegExp(pattern, 'g');
+            return m3u8Content.replace(regex, '');
         }
         
 
