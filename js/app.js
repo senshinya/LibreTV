@@ -984,7 +984,7 @@ function renderEpisodes(vodName, sourceCode) {
     // 根据倒序状态计算真实的剧集索引
     const realIndex = episodesReversed ? currentEpisodes.length - 1 - index : index;
     return `
-            <button id="episode-${realIndex}" onclick="playVideo('${episode}','${vodName.replace(/"/g, '&quot;')}', ${sourceCode}, ${realIndex})" 
+            <button id="episode-${realIndex}" onclick="playVideo('${episode}','${vodName.replace(/"/g, '&quot;')}', '${sourceCode}', ${realIndex})" 
                     class="px-4 py-2 bg-[#222] hover:bg-[#333] border border-[#333] rounded-lg transition-colors text-center episode-btn">
                 第${realIndex + 1}集
             </button>
