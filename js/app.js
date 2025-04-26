@@ -869,7 +869,7 @@ async function showDetails(id, vod_name, sourceCode) {
             episodesReversed = false; // 默认正序
             modalContent.innerHTML = `
                 <div class="flex justify-end mb-2">
-                    <button onclick="toggleEpisodeOrder()" class="px-4 py-2 bg-gradient-to-r from-indigo-500 via-purple-500 to-pink-500 text-white font-semibold rounded-full shadow-lg hover:shadow-xl transition-all duration-300 transform hover:-translate-y-1 flex items-center justify-center space-x-2">
+                    <button onclick="toggleEpisodeOrder(${sourceCode})" class="px-4 py-2 bg-gradient-to-r from-indigo-500 via-purple-500 to-pink-500 text-white font-semibold rounded-full shadow-lg hover:shadow-xl transition-all duration-300 transform hover:-translate-y-1 flex items-center justify-center space-x-2">
                         <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" viewBox="0 0 20 20" fill="currentColor">
                             <path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm1-11a1 1 0 10-2 0v3.586L7.707 9.293a1 1 0 00-1.414 1.414l3 3a1 1 0 001.414 0l3-3a1 1 0 00-1.414-1.414L11 10.586V7z" clip-rule="evenodd" />
                         </svg>
@@ -877,7 +877,7 @@ async function showDetails(id, vod_name, sourceCode) {
                     </button>
                 </div>
                 <div id="episodesGrid" class="grid grid-cols-2 sm:grid-cols-4 md:grid-cols-6 lg:grid-cols-8 gap-2">
-                    ${renderEpisodes(vod_name)}
+                    ${renderEpisodes(vod_name, sourceCode)}
                 </div>
             `;
     } else {
@@ -894,7 +894,7 @@ async function showDetails(id, vod_name, sourceCode) {
 }
 
 // 更新播放视频函数，修改为在新标签页中打开播放页面，并保存到历史记录
-function playVideo(url, vod_name, episodeIndex = 0) {
+function playVideo(url, vod_name, sourceCode, episodeIndex = 0) {
     // 密码保护校验
     if (window.isPasswordProtected && window.isPasswordVerified) {
         if (window.isPasswordProtected() && !window.isPasswordVerified()) {
@@ -947,27 +947,27 @@ function playVideo(url, vod_name, episodeIndex = 0) {
     }
     
     // 构建播放页面URL，传递必要参数
-    const playerUrl = `player.html?url=${encodeURIComponent(url)}&title=${encodeURIComponent(videoTitle)}&index=${episodeIndex}&source=${encodeURIComponent(sourceName)}`;
+    const playerUrl = `player.html?url=${encodeURIComponent(url)}&title=${encodeURIComponent(videoTitle)}&index=${episodeIndex}&source=${encodeURIComponent(sourceName)}&source_code=${encodeURIComponent(sourceCode)}`;
     
     // 在新标签页中打开播放页面
     window.open(playerUrl, '_blank');
 }
 
 // 播放上一集
-function playPreviousEpisode() {
+function playPreviousEpisode(sourceCode) {
   if (currentEpisodeIndex > 0) {
     const prevIndex = currentEpisodeIndex - 1;
     const prevUrl = currentEpisodes[prevIndex];
-    playVideo(prevUrl, currentVideoTitle, prevIndex);
+    playVideo(prevUrl, currentVideoTitle, sourceCode, prevIndex);
   }
 }
 
 // 播放下一集
-function playNextEpisode() {
+function playNextEpisode(sourceCode) {
   if (currentEpisodeIndex < currentEpisodes.length - 1) {
     const nextIndex = currentEpisodeIndex + 1;
     const nextUrl = currentEpisodes[nextIndex];
-    playVideo(nextUrl, currentVideoTitle, nextIndex);
+    playVideo(nextUrl, currentVideoTitle, sourceCode, nextIndex);
   }
 }
 
@@ -978,13 +978,13 @@ function handlePlayerError() {
 }
 
 // 辅助函数用于渲染剧集按钮（使用当前的排序状态）
-function renderEpisodes(vodName) {
+function renderEpisodes(vodName, sourceCode) {
   const episodes = episodesReversed ? [...currentEpisodes].reverse() : currentEpisodes;
   return episodes.map((episode, index) => {
     // 根据倒序状态计算真实的剧集索引
     const realIndex = episodesReversed ? currentEpisodes.length - 1 - index : index;
     return `
-            <button id="episode-${realIndex}" onclick="playVideo('${episode}','${vodName.replace(/"/g, '&quot;')}', ${realIndex})" 
+            <button id="episode-${realIndex}" onclick="playVideo('${episode}','${vodName.replace(/"/g, '&quot;')}', ${sourceCode}, ${realIndex})" 
                     class="px-4 py-2 bg-[#222] hover:bg-[#333] border border-[#333] rounded-lg transition-colors text-center episode-btn">
                 第${realIndex + 1}集
             </button>
@@ -993,7 +993,7 @@ function renderEpisodes(vodName) {
 }
 
 // 切换排序状态的函数
-function toggleEpisodeOrder() {
+function toggleEpisodeOrder(sourceCode) {
   episodesReversed = !episodesReversed;
   // 重新渲染剧集区域，使用 currentVideoTitle 作为视频标题
   const episodesGrid = document.getElementById('episodesGrid');
@@ -1002,7 +1002,7 @@ function toggleEpisodeOrder() {
   }
 
   // 更新按钮文本和箭头方向
-  const toggleBtn = document.querySelector('button[onclick="toggleEpisodeOrder()"]');
+  const toggleBtn = document.querySelector(`button[onclick="toggleEpisodeOrder(${sourceCode})"]`);
   if (toggleBtn) {
     toggleBtn.querySelector('span').textContent = episodesReversed ? '正序排列' : '倒序排列';
     const arrowIcon = toggleBtn.querySelector('svg');

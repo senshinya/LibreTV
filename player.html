@@ -355,6 +355,7 @@
             const urlParams = new URLSearchParams(window.location.search);
             const videoUrl = urlParams.get('url');
             const title = urlParams.get('title');
+            const sourceCode = urlParams.get('source_code');
             let index = parseInt(urlParams.get('index') || '0');
             const episodesList = urlParams.get('episodes'); // 新增：从URL获取集数信息
 
@@ -421,7 +422,7 @@
 
             // 初始化播放器
             if (videoUrl) {
-                initPlayer(videoUrl);
+                initPlayer(videoUrl, sourceCode);
                 
                 // 尝试从URL参数中恢复播放位置
                 const position = urlParams.get('position');
@@ -545,7 +546,7 @@
         }
 
         // 初始化播放器
-        function initPlayer(videoUrl) {
+        function initPlayer(videoUrl, sourceCode) {
             if (!videoUrl) return;
 
             detectBrowserCapabilities();
@@ -553,7 +554,7 @@
             // 配置HLS.js选项
             const hlsConfig = {
                 debug: false,
-                loader: adFilteringEnabled ? CustomHlsJsLoader : Hls.DefaultConfig.loader,
+                loader: (adFilteringEnabled && API_SITES[sourceCode].filterAd !== false) ? CustomHlsJsLoader : Hls.DefaultConfig.loader,
                 enableWorker: true,
                 lowLatencyMode: false,
                 backBufferLength: 90,
@@ -1089,6 +1090,7 @@
             // 获取当前URL参数，保留source参数
             const urlParams = new URLSearchParams(window.location.search);
             const sourceName = urlParams.get('source') || '';
+            const sourceCode = urlParams.get('source_code') || '';
             
             // 更新URL，不刷新页面，保留source参数
             const newUrl = new URL(window.location.href);
@@ -1096,6 +1098,9 @@
             newUrl.searchParams.set('url', url);
             if (sourceName) {
                 newUrl.searchParams.set('source', sourceName);
+            }
+            if (sourceCode) {
+                newUrl.searchParams.set('source_code', sourceCode);
             }
             window.history.pushState({}, '', newUrl);
             
@@ -1113,16 +1118,16 @@
                         playPromise.catch(error => {
                             console.warn('播放失败，尝试重新初始化:', error);
                             // 如果切换视频失败，重新初始化播放器
-                            initPlayer(url);
+                            initPlayer(url, sourceCode);
                         });
                     }
                 } catch (e) {
                     console.error('切换视频出错，尝试重新初始化:', e);
                     // 如果出错，重新初始化播放器
-                    initPlayer(url);
+                    initPlayer(url, sourceCode);
                 }
             } else {
-                initPlayer(url);
+                initPlayer(url, sourceCode);
             }
             
             // 更新UI
@@ -1262,6 +1267,7 @@
             // 尝试从URL中获取参数
             const urlParams = new URLSearchParams(window.location.search);
             const sourceName = urlParams.get('source') || '';
+            const sourceCode = urlParams.get('source_code') || '';
 
             // 获取当前播放进度
             let currentPosition = 0;
@@ -1276,7 +1282,7 @@
             const videoInfo = {
                 title: currentVideoTitle,
                 // 创建基础URL，使用标题作为唯一标识符
-                url: `player.html?title=${encodeURIComponent(currentVideoTitle)}&source=${encodeURIComponent(sourceName)}`,
+                url: `player.html?title=${encodeURIComponent(currentVideoTitle)}&source=${encodeURIComponent(sourceName)}&source_code=${encodeURIComponent(sourceCode)}`,
                 episodeIndex: currentEpisodeIndex,
                 sourceName: sourceName,
                 timestamp: Date.now(),
