@@ -721,32 +721,6 @@
                             hls.on(Hls.Events.LEVEL_LOADED, function() {
                                 document.getElementById('loading').style.display = 'none';
                             });
-
-                            // --- 体验加强版：黑屏快进跳广告 ---
-                            let tmp_time_add = 0.1;
-                            const tmp_max_buffer_length = hls.config.maxBufferLength;
-                            hls.on(Hls.Events.FRAG_PARSED, (event, data) => {
-                                if (data.frag.endList) {
-                                    const cur = hls.media.currentTime;
-                                    const dur = hls.media.duration || 0;
-                                    if (cur < dur) {
-                                        data.frag.endList = undefined;
-                                        // 根据 tmp_time_add 调整 buffer 长度
-                                        hls.config.maxBufferLength = tmp_time_add < 1
-                                            ? 2
-                                            : tmp_max_buffer_length;
-                                        // 重新加载并跳转
-                                        hls.loadSource(video.src);
-                                        hls.attachMedia(video);
-                                        hls.media.currentTime = cur + tmp_time_add;
-                                        // 切换下次跳转时长：0.1 ↔ 5
-                                        tmp_time_add = tmp_time_add < 1 ? 5 : 0.1;
-                                        player.video.play().catch(() => {});
-                                    } else {
-                                        player.video.pause();
-                                    }
-                                }
-                            });
                         }
                     };
             }
@@ -935,22 +909,69 @@
         // M3U8清单广告过滤函数
         function filterAdsFromM3U8(m3u8Content, strictMode = false) {
             if (!m3u8Content) return '';
-            
+
+            let skipContent = false;
+            let discontinuityCount = 0;
+            let currentSegmentDuration = 0;
+            let totalOriginalDuration = 0;
+            let totalFilteredDuration = 0;
+            let segmentUrl = false
+                
             // 按行分割M3U8内容
             const lines = m3u8Content.split('\n');
             const filteredLines = [];
-            
-            for (let i = 0; i < lines.length; i++) {
-                const line = lines[i];
                 
-                // 只过滤#EXT-X-DISCONTINUITY标识
-                if (!line.includes('#EXT-X-DISCONTINUITY')) {
+            for (let i = 0; i < lines.length; i++) {
+                const line = lines[i].trim();
+
+                if (line.includes('#EXT-X-DISCONTINUITY')) {
+                    discontinuityCount++;
+                    if (segmentUrl) {
+                        skipContent = !skipContent;
+                    }
+                    continue;
+                }
+
+                if (line.startsWith('#EXTINF:')) {
+                    const durationMatch = line.match(/#EXTINF:(\d+(\.\d+)?)/);
+                    if (durationMatch) {
+                        currentSegmentDuration = parseFloat(durationMatch[1]);
+                        totalOriginalDuration += currentSegmentDuration;
+
+                        if (!skipContent) {
+                            totalFilteredDuration += currentSegmentDuration;
+                            filteredLines.push(line);
+                        }
+                    } else {
+                        if (!skipContent) {
+                            filteredLines.push(line);
+                        }
+                    }
+                    continue;
+                }
+                // 片段 URL 行
+                if (line.length > 0 && !line.startsWith('#')) {
+                    if (!skipContent) {
+                        filteredLines.push(line);
+                    }
+                    segmentUrl = true;
+                    currentSegmentDuration = 0;
+                    continue;
+                }
+
+                if (!skipContent || line.startsWith('#EXT')) {
                     filteredLines.push(line);
                 }
             }
-            
-            return filteredLines.join('\n');
+                
+            console.log('原始时长:', totalOriginalDuration, '过滤后时长:', totalFilteredDuration);
+            // 替换 M3U8 中的总时长标记（如果存在）
+            const filteredText = filteredLines.join('\n');
+            return filteredText.replace(/#EXT-X-TARGETDURATION:(\d+(\.\d+)?)/, (match, p1) => {
+                return `#EXT-X-TARGETDURATION:${p1}`;
+            });
         }
+        
 
         // 显示错误
         function showError(message) {
