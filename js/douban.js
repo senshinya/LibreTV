@@ -303,14 +303,31 @@ function fetchDoubanTags() {
 function renderRecommend(tag, pageLimit, pageStart) {
     const container = document.getElementById("douban-results");
     if (!container) return;
-    
-    // 显示加载状态
-    container.innerHTML = `
-        <div class="col-span-full flex items-center justify-center py-10">
-            <div class="w-6 h-6 border-2 border-pink-500 border-t-transparent rounded-full animate-spin inline-block"></div>
-            <span class="text-pink-500 ml-4">加载中...</span>
-        </div>
+
+    const loadingOverlay = document.createElement("div");
+    loadingOverlay.classList.add(
+        "absolute",
+        "inset-0",
+        "bg-gray-100",
+        "bg-opacity-75",
+        "flex",
+        "items-center",
+        "justify-center",
+        "z-10"
+    );
+
+    const loadingContent = document.createElement("div");
+    loadingContent.innerHTML = `
+      <div class="flex items-center justify-center">
+          <div class="w-6 h-6 border-2 border-pink-500 border-t-transparent rounded-full animate-spin inline-block"></div>
+          <span class="text-pink-500 ml-4">加载中...</span>
+      </div>
     `;
+    loadingOverlay.appendChild(loadingContent);
+
+    // 冻结原有内容，并添加加载状态
+    container.classList.add("relative");
+    container.appendChild(loadingOverlay);
     
     const target = `https://movie.douban.com/j/search_subjects?type=${doubanMovieTvCurrentSwitch}&tag=${tag}&sort=recommend&page_limit=${pageLimit}&page_start=${pageStart}`;
     

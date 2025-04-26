@@ -476,14 +476,14 @@ function playFromHistory(url, title, episodeIndex, playbackPosition = 0) {
         
         if (url.includes('?')) {
             // URL已有参数，添加索引和位置参数
-            let playUrl = url;
-            if (!url.includes('index=') && episodeIndex > 0) {
-                playUrl += `&index=${episodeIndex}`;
+            const playUrl = new URL(url);
+            if (!playUrl.searchParams.has('index') && episodeIndex > 0) {
+                playUrl.searchParams.set('index', episodeIndex);
             }
             if (playbackPosition > 10) {
-                playUrl += positionParam;
+                playUrl.searchParams.set('position', Math.floor(playbackPosition).toString());
             }
-            window.open(playUrl, '_blank');
+            window.open(playUrl.toString(), '_blank');
         } else {
             // 原始URL，构造player页面链接
             const playerUrl = `player.html?url=${encodeURIComponent(url)}&title=${encodeURIComponent(title)}&index=${episodeIndex}${positionParam}`;
