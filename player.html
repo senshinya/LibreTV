@@ -657,8 +657,7 @@
                                 }
                             });
 
-                            console.log(player.options.video.url);
-                            hls.loadSource(player.options.video.url);
+                            hls.loadSource(video.src);
                             hls.attachMedia(video);
                             
                             hls.on(Hls.Events.MANIFEST_PARSED, function() {

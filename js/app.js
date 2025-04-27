@@ -994,22 +994,22 @@ function renderEpisodes(vodName, sourceCode) {
 
 // 切换排序状态的函数
 function toggleEpisodeOrder(sourceCode) {
-  episodesReversed = !episodesReversed;
-  // 重新渲染剧集区域，使用 currentVideoTitle 作为视频标题
-  const episodesGrid = document.getElementById('episodesGrid');
-  if (episodesGrid) {
-    episodesGrid.innerHTML = renderEpisodes(currentVideoTitle);
-  }
-
-  // 更新按钮文本和箭头方向
-  const toggleBtn = document.querySelector(`button[onclick="toggleEpisodeOrder(${sourceCode})"]`);
-  if (toggleBtn) {
-    toggleBtn.querySelector('span').textContent = episodesReversed ? '正序排列' : '倒序排列';
-    const arrowIcon = toggleBtn.querySelector('svg');
-    if (arrowIcon) {
-      arrowIcon.style.transform = episodesReversed ? 'rotate(180deg)' : 'rotate(0deg)';
+    episodesReversed = !episodesReversed;
+    // 重新渲染剧集区域，使用 currentVideoTitle 作为视频标题
+    const episodesGrid = document.getElementById('episodesGrid');
+    if (episodesGrid) {
+        episodesGrid.innerHTML = renderEpisodes(currentVideoTitle, sourceCode);
     }
-  }
+    
+    // 更新按钮文本和箭头方向
+    const toggleBtn = document.querySelector(`button[onclick="toggleEpisodeOrder(${sourceCode})"]`);
+    if (toggleBtn) {
+        toggleBtn.querySelector('span').textContent = episodesReversed ? '正序排列' : '倒序排列';
+        const arrowIcon = toggleBtn.querySelector('svg');
+        if (arrowIcon) {
+            arrowIcon.style.transform = episodesReversed ? 'rotate(180deg)' : 'rotate(0deg)';
+        }
+    }
 }
 
 // app.js 或路由文件中
