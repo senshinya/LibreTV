@@ -275,10 +275,10 @@
         // 保存原始 js‑sha256 实现，避免被 password.js 覆盖
         window._jsSha256 = window.sha256;
     </script>
-    <!-- <script src="https://s4.zstatic.net/ajax/libs/hls.js/1.5.6/hls.min.js" integrity="sha256-X1GmLMzVcTBRiGjEau+gxGpjRK96atNczcLBg5w6hKA=" crossorigin="anonymous"></script> -->
+    
     <script src="https://cdn.jsdelivr.net/npm/hls.js@1.6.2/dist/hls.min.js" crossorigin="anonymous"></script>
     <script src="https://s4.zstatic.net/ajax/libs/dplayer/1.26.0/DPlayer.min.js" integrity="sha256-OJg03lDZP0NAcl3waC9OT5jEa8XZ8SM2n081Ik953o4=" crossorigin="anonymous"></script>
-    <!-- <script src="https://s4.zstatic.net/ajax/libs/dplayer/1.27.1/DPlayer.min.js" crossorigin="anonymous"></script> -->
+
     <script src="js/config.js"></script>
     <script src="js/password.js"></script>
 
@@ -630,7 +630,8 @@
 
                             hls.loadSource(video.src);
                             hls.attachMedia(video);
-
+                            
+                            // enable airplay, from https://github.com/video-dev/hls.js/issues/5989
                             const source = document.createElement('source');
                             source.src = videoUrl;
                             video.appendChild(source);
