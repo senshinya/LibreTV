@@ -884,9 +884,10 @@
         function filterAdsFromM3U8(m3u8Content, strictMode = false) {
             if (!m3u8Content) return '';
 
-            let pattern = window.filterAdPattern;
-            const regex = new RegExp(pattern, 'g');
-            return m3u8Content.replace(regex, '');
+            if (window.filterAdPattern) {
+                const regex = new RegExp(window.filterAdPattern, 'g');
+                return m3u8Content.replace(regex, '');
+            };
         }
         
 
