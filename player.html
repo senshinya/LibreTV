@@ -884,10 +884,20 @@
         function filterAdsFromM3U8(m3u8Content, strictMode = false) {
             if (!m3u8Content) return '';
 
-            if (window.filterAdPattern) {
-                const regex = new RegExp(window.filterAdPattern, 'g');
-                return m3u8Content.replace(regex, '');
-            };
+            // 按行分割M3U8内容
+            const lines = m3u8Content.split('\n');
+            const filteredLines = [];
+
+            for (let i = 0; i < lines.length; i++) {
+                const line = lines[i];
+
+                // 只过滤#EXT-X-DISCONTINUITY标识
+                if (!line.includes('#EXT-X-DISCONTINUITY')) {
+                    filteredLines.push(line);
+                }
+            }
+
+            return filteredLines.join('\n');
         }
         
 
