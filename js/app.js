@@ -737,46 +737,46 @@ async function search() {
             const apiUrlAttr = item.api_url ? 
                 `data-api-url="${item.api_url.replace(/"/g, '&quot;')}"` : '';
             
-            // 更紧凑的卡片布局
+            // 修改为水平卡片布局，图片在左侧，文本在右侧，并优化样式
             const hasCover = item.vod_pic && item.vod_pic.startsWith('http');
             
             return `
                 <div class="card-hover bg-[#111] rounded-lg overflow-hidden cursor-pointer transition-all hover:scale-[1.02] h-full shadow-sm hover:shadow-md" 
                      onclick="showDetails('${safeId}','${safeName}','${sourceCode}')" ${apiUrlAttr}>
-                    <div class="flex flex-col h-full">
+                    <div class="flex h-full">
                         ${hasCover ? `
-                        <div class="relative overflow-hidden" style="height: 160px;">
+                        <div class="relative flex-shrink-0 search-card-img-container">
                             <img src="${item.vod_pic}" alt="${safeName}" 
-                                 class="w-full h-full object-cover transition-transform hover:scale-110" 
+                                 class="h-full w-full object-cover transition-transform hover:scale-110" 
                                  onerror="this.onerror=null; this.src='https://via.placeholder.com/300x450?text=无封面'; this.classList.add('object-contain');" 
                                  loading="lazy">
-                            <div class="absolute inset-0 bg-gradient-to-t from-[#111] to-transparent opacity-60"></div>
+                            <div class="absolute inset-0 bg-gradient-to-r from-black/30 to-transparent"></div>
                         </div>` : ''}
                         
                         <div class="p-2 flex flex-col flex-grow">
                             <div class="flex-grow">
-                                <h3 class="text-sm font-semibold mb-1 break-words line-clamp-2 text-center" title="${safeName}">${safeName}</h3>
+                                <h3 class="font-semibold mb-2 break-words line-clamp-2 ${hasCover ? '' : 'text-center'}" title="${safeName}">${safeName}</h3>
                                 
-                                <div class="flex flex-wrap justify-center gap-1 mb-1">
+                                <div class="flex flex-wrap ${hasCover ? '' : 'justify-center'} gap-1 mb-2">
                                     ${(item.type_name || '').toString().replace(/</g, '&lt;') ? 
-                                      `<span class="text-xs py-0 px-1 rounded bg-opacity-20 bg-blue-500 text-blue-300">
+                                      `<span class="text-xs py-0.5 px-1.5 rounded bg-opacity-20 bg-blue-500 text-blue-300">
                                           ${(item.type_name || '').toString().replace(/</g, '&lt;')}
                                       </span>` : ''}
                                     ${(item.vod_year || '') ? 
-                                      `<span class="text-xs py-0 px-1 rounded bg-opacity-20 bg-purple-500 text-purple-300">
+                                      `<span class="text-xs py-0.5 px-1.5 rounded bg-opacity-20 bg-purple-500 text-purple-300">
                                           ${item.vod_year}
                                       </span>` : ''}
                                 </div>
-                                <p class="text-gray-400 text-xs line-clamp-1 overflow-hidden text-center">
+                                <p class="text-gray-400 line-clamp-2 overflow-hidden ${hasCover ? '' : 'text-center'} mb-2">
                                     ${(item.vod_remarks || '暂无介绍').toString().replace(/</g, '&lt;')}
                                 </p>
                             </div>
                             
-                            <div class="flex justify-between items-center mt-1 pt-1 border-t border-gray-800 text-xs">
+                            <div class="flex justify-between items-center mt-1 pt-1 border-t border-gray-800">
                                 ${sourceInfo ? `<div>${sourceInfo}</div>` : '<div></div>'}
                                 <div>
-                                    <span class="text-xs text-gray-500 flex items-center">
-                                        <svg xmlns="http://www.w3.org/2000/svg" class="h-3 w-3 mr-0.5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                    <span class="text-gray-500 flex items-center hover:text-blue-400 transition-colors">
+                                        <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4 mr-1" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                                             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M14.752 11.168l-3.197-2.132A1 1 0 0010 9.87v4.263a1 1 0 001.555.832l3.197-2.132a1 1 0 000-1.664z" />
                                         </svg>
                                         播放

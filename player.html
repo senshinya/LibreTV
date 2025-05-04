@@ -156,18 +156,22 @@
     </style>
 </head>
 <body>
-    <header class="bg-[#111] p-4 flex justify-between items-center border-b border-[#333]">
-        <div class="flex items-center">
-            <a href="index.html" class="flex items-center">
-                <svg class="w-8 h-8 mr-2 text-[#00ccff]" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+    <header class="bg-[#111] p-4 flex items-center border-b border-[#333] gap-2 player-header">
+        <div class="flex items-center min-w-0">
+            <a href="index.html" class="flex items-center min-w-0">
+                <svg class="w-8 h-8 mr-2 text-[#00ccff] logo-icon" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 10l4.553-2.276A1 1 0 0121 8.618v6.764a1 1 0 01-1.447.894L15 14M5 18h8a2 2 0 002-2V8a2 2 0 00-2-2H5a2 2 0 00-2 2v8a2 2 0 002 2z"></path>
                 </svg>
-                <h1 class="text-xl font-bold gradient-text">LibreTV</h1>
+                <h1 class="text-xl font-bold gradient-text logo-text">LibreTV</h1>
             </a>
         </div>
-        <h2 id="videoTitle" class="text-xl font-semibold truncate flex-1 text-center"></h2>
-        <a href="index.html" class="px-4 py-2 bg-[#222] hover:bg-[#333] border border-[#333] rounded-lg transition-colors">
-            返回首页
+        <h2 id="videoTitle" class="text-xl font-semibold flex-1 text-center overflow-x-auto whitespace-nowrap truncate custom-title-scroll"></h2>
+        <a href="index.html" class="px-4 py-2 bg-[#222] hover:bg-[#333] border border-[#333] rounded-lg transition-colors flex items-center min-w-0 home-btn">
+            <svg xmlns="http://www.w3.org/2000/svg" class="w-5 h-5 mr-1" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+              <path d="M19 21V9.5l-7-5-7 5V21a2 2 0 0 0 2 2h10a2 2 0 0 0 2-2z" />
+              <path d="M9 22V12h6v10" />
+            </svg>
+            <span class="home-btn-text">返回首页</span>
         </a>
     </header>
 
