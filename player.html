@@ -1387,6 +1387,20 @@
             function showSpeedHint(speed) {
                 showShortcutHint(`${speed}倍速`, 'right');
             }
+
+            // 禁用右键
+            playerElement.oncontextmenu =  () => {
+                // 检测是否为移动设备
+                const isMobile = /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent);
+                
+                // 只在移动设备上禁用右键
+                if (isMobile) {
+                    document.querySelector(".dplayer-menu").style.display = "none";
+                    document.querySelector(".dplayer-mask").style.display = "none";
+                    return false;
+                }
+                return true; // 在桌面设备上允许右键菜单
+            };
             
             // 禁用右键
             playerElement.oncontextmenu =  () => {
