@@ -44,7 +44,7 @@ const API_SITES = {
         name: '卧龙资源',
     },
     hwba: {
-        api: 'https://cjwba.com',
+        api: 'https://cjhwba.com',
         name: '华为吧资源',
     },
     jisu: {
@@ -75,8 +75,19 @@ const API_SITES = {
     zuid: {
         api: 'https://api.zuidapi.com',
         name: '最大资源'
-    }
-    // 您可以按需添加更多源
+    },
+    yinghua: {
+        api: 'https://m3u8.apiyhzy.com',
+        name: '樱花资源'
+    },
+    baidu: {
+        api: 'https://api.apibdzy.com',
+        name: '百度云资源'
+    },
+    wujin: {
+        api: 'https://api.wujinapi.me',
+        name: '无尽资源'
+    },
 };
 
 // 添加聚合搜索的配置选项
