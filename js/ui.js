@@ -619,3 +619,71 @@ document.addEventListener('DOMContentLoaded', function() {
         }
     });
 });
+
+// 清除本地存储缓存并刷新页面
+function clearLocalStorage() {
+    // 确保模态框在页面上只有一个实例
+    let modal = document.getElementById('messageBoxModal');
+    if (modal) {
+        document.body.removeChild(modal);
+    }
+
+    // 创建模态框元素
+    modal = document.createElement('div');
+    modal.id = 'messageBoxModal';
+    modal.className = 'fixed inset-0 bg-black bg-opacity-75 flex items-center justify-center z-50';
+
+    modal.innerHTML = `
+        <div class="bg-[#191919] rounded-lg p-6 max-w-md w-full max-h-[90vh] overflow-y-auto relative">
+            <button id="closeBoxModal" class="absolute top-4 right-4 text-gray-400 hover:text-white text-xl">&times;</button>
+            
+            <h3 class="text-xl font-bold text-red-500 mb-4">警告</h3>
+            
+            <div class="mb-4">
+                <div class="text-sm font-medium text-gray-300 mb-4">确定要清除页面缓存吗？\n此功能会同时删除你手动添加的所有自定义 API 接口，此操作不可恢复！</div>
+                <div class="flex justify-end space-x-2">
+                    <button id="confirmBoxModal" class="ml-2 bg-gray-600 hover:bg-gray-700 text-white px-4 py-2 rounded">确定</button>
+                    <button id="cancelBoxModal" class="ml-2 bg-pink-600 hover:bg-pink-700 text-white px-4 py-2 rounded">取消</button>
+                </div>
+            </div>
+        </div>`;
+
+    // 添加模态框到页面
+    document.body.appendChild(modal);
+
+    // 添加事件监听器 - 关闭按钮
+    document.getElementById('closeBoxModal').addEventListener('click', function () {
+        document.body.removeChild(modal);
+    });
+
+    // 添加事件监听器 - 确定按钮
+    document.getElementById('confirmBoxModal').addEventListener('click', function () {
+        localStorage.clear();
+        modal.innerHTML = `
+            <div class="bg-[#191919] rounded-lg p-6 max-w-md w-full max-h-[90vh] overflow-y-auto relative">
+                <button id="closeBoxModal" class="absolute top-4 right-4 text-gray-400 hover:text-white text-xl">&times;</button>
+                
+                <h3 class="text-xl font-bold text-white mb-4">提示</h3>
+                
+                <div class="mb-4">
+                    <div class="text-sm font-medium text-gray-300 mb-4">页面缓存已清除，3 秒后自动刷新本页面。</div>
+                </div>
+            </div>`;
+        setTimeout(() => {
+            window.location.reload();
+        }, 3000);
+    });
+
+    // 添加事件监听器 - 取消按钮
+    document.getElementById('cancelBoxModal').addEventListener('click', function () {
+        document.body.removeChild(modal);
+    });
+
+    // 添加事件监听器 - 点击模态框外部关闭
+    modal.addEventListener('click', function (e) {
+        if (e.target === modal) {
+            document.body.removeChild(modal);
+        }
+    });
+}
+
