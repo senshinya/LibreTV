@@ -1,17 +1,20 @@
 name: 'Build LibreTV image'
 
 on:
-  push:
-    branches:
-      - main
+  workflow_run:
+    workflows: ["Bump version"]
+    types:
+      - completed
   workflow_dispatch:
 
 jobs:
   build:
     name: 'Build LibreTV image'
     runs-on: ubuntu-latest
-    # Modified to run on both repositories
-    if: github.repository == 'LibreSpark/LibreTV' || github.repository == 'bestZwei/libretv'
+    if: >
+      (github.event_name == 'workflow_dispatch')
+      || (github.event_name == 'workflow_run' && github.event.workflow_run.conclusion == 'success'
+          && (github.repository == 'LibreSpark/LibreTV' || github.repository == 'bestZwei/libretv'))
     env:
       DOCKER_USERNAME: ${{ secrets.DOCKER_USERNAME }}
 

@@ -15,7 +15,7 @@ const SITE_CONFIG = {
     name: 'LibreTV',
     url: 'https://libretv.is-an.org',
     description: '免费在线视频搜索与观看平台',
-    logo: 'https://images.icon-icons.com/38/PNG/512/retrotv_5520.png',
+    logo: './image/retrotv_5520.png',
     version: '1.0.3'
 };
 
@@ -37,6 +37,10 @@ const API_SITES = {
     tyyszy: {
         api: 'https://tyyszy.com',
         name: '天涯资源',
+    },
+    xiaomaomi: {
+        api: 'https://zy.xiaomaomi.cc',
+        name: '小猫咪资源',
     },
     ffzy: {
         api: 'http://ffzy5.tv',

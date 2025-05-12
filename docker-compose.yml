@@ -6,5 +6,5 @@ services:
     ports:
       - "8899:80"
     environment:
-      - PASSWORD=111111
+      - PASSWORD=${PASSWORD:-111111}
     restart: unless-stopped

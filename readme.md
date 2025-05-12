@@ -1,7 +1,7 @@
 # LibreTV - 免费在线视频搜索与观看平台
 
 <div align="center">
-  <img src="https://images.icon-icons.com/38/PNG/512/retrotv_5520.png" alt="LibreTV Logo" width="120">
+  <img src="./image/retrotv_5520.png" alt="LibreTV Logo" width="120">
   <br>
   <p><strong>自由观影，畅享精彩</strong></p>
 </div>

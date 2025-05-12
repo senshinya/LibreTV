@@ -45,8 +45,8 @@ jobs:
           upstream_sync_branch: main
           target_sync_branch: main
           target_repo_token: ${{ secrets.GITHUB_TOKEN }}
-          commit_user_name: github-actions[bot]
-          commit_user_email: 41898282+github-actions[bot]@users.noreply.github.com
+          git_config_user: github-actions[bot]
+          git_config_email: 41898282+github-actions[bot]@users.noreply.github.com
           test_mode: false
 
       - name: Sync check
