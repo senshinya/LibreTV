@@ -249,13 +249,13 @@ body {
     border-radius: 8px;
 }
 
-#modalContent button {
+#episodesGrid button {
     background: rgba(0, 204, 255, 0.08);
     border: 1px solid rgba(0, 204, 255, 0.2);
     transition: all 0.2s ease;
 }
 
-#modalContent button:hover {
+#episodesGrid button:hover {
     background: rgba(0, 204, 255, 0.15);
     border-color: var(--primary-color);
     box-shadow: 0 0 8px rgba(0, 204, 255, 0.3);
@@ -876,4 +876,20 @@ body {
 /* 优化卡片内元素间距 */
 .card-hover .p-2 {
     padding: 0.5rem;
+}
+
+/* 确保Toast显示在顶层并有适当的转换效果 */
+#toast {
+    z-index: 9999; /* 确保显示在最上层 */
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);
+    min-width: 200px;
+    text-align: center;
+    pointer-events: none; /* 防止toast阻挡点击事件 */
+    transform: translateX(-50%) translateY(0);
+    transition: opacity 0.3s ease, transform 0.3s ease;
+}
+
+#toast.hidden {
+    opacity: 0;
+    transform: translateX(-50%) translateY(-100%);
 }

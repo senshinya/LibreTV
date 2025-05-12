@@ -26,7 +26,9 @@ LibreTV 是一个轻量级、免费的在线视频搜索与观看平台，提供
 
 选择以下任一平台，点击一键部署按钮，即可快速创建自己的 LibreTV 实例：
 
-[![Deploy with Vercel](https://vercel.com/button)](https://vercel.com/new/clone?repository-url=https%3A%2F%2Fgithub.com%2FLibreSpark%2FLibreTV) [![Deploy to Netlify](https://www.netlify.com/img/deploy/button.svg)](https://app.netlify.com/start/deploy?repository=https://github.com/LibreSpark/LibreTV)
+[![Deploy with Vercel](https://vercel.com/button)](https://vercel.com/new/clone?repository-url=https%3A%2F%2Fgithub.com%2FLibreSpark%2FLibreTV) [![Deploy to Netlify](https://www.netlify.com/img/deploy/button.svg)](https://app.netlify.com/start/deploy?repository=https://github.com/LibreSpark/LibreTV) 
+
+[![Deploy to Render](https://render.com/images/deploy-to-render-button.svg)](https://render.com/deploy?repo=https://github.com/LibreSpark/LibreTV) 
 
 ## 📋 详细部署指南
 
@@ -49,14 +51,6 @@ LibreTV 是一个轻量级、免费的在线视频搜索与观看平台，提供
 4. 点击"Deploy"
 5. 可选：在"Settings" > "Environment Variables"中配置密码保护
 
-### Netlify
-
-1. Fork 或克隆本仓库到您的 GitHub 账户
-2. 登录 [Netlify](https://app.netlify.com/)
-3. 点击"New site from Git"，选择您的仓库
-4. 构建设置保持默认
-5. 点击"Deploy site"
-6. 可选：在"Site settings" > "Build & deploy" > "Environment"中配置密码保护
 
 ### Docker
 
@@ -118,6 +112,7 @@ npm run dev
 - **Vercel**: Dashboard > 您的项目 > Settings > Environment Variables
 - **Netlify**: Dashboard > 您的项目 > Site settings > Build & deploy > Environment
 - **Docker**: 使用 `-e PASSWORD=your_password` 参数
+- **本地开发**: SET PASSWORD=your_password
 
 ### API兼容性
 
@@ -172,3 +167,9 @@ LibreTV 支持标准的苹果 CMS V10 API 格式。添加自定义 API 时需遵
 LibreTV 仅作为视频搜索工具，不存储、上传或分发任何视频内容。所有视频均来自第三方 API 接口提供的搜索结果。如有侵权内容，请联系相应的内容提供方。
 
 本项目开发者不对使用本项目产生的任何后果负责。使用本项目时，您必须遵守当地的法律法规。
+
+## 💝 支持项目
+
+如果您想支持本项目，可以考虑进行捐款：
+
+[![捐赠](https://img.shields.io/badge/捐赠-UNICEF-1a85ff?style=for-the-badge&logo=unicef)](https://help.unicef.org/#donation-form)

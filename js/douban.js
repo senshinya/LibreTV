@@ -89,6 +89,9 @@ function initDouban() {
         
         // 初始更新显示状态
         updateDoubanVisibility();
+
+        // 滚动到页面顶部
+        window.scrollTo(0, 0);
     }
 
     // 加载用户标签
@@ -170,7 +173,7 @@ function fillAndSearch(title) {
 }
 
 // 填充搜索框，确保豆瓣资源API被选中，然后执行搜索
-function fillAndSearchWithDouban(title) {
+async function fillAndSearchWithDouban(title) {
     if (!title) return;
     
     // 安全处理标题，防止XSS
@@ -209,7 +212,14 @@ function fillAndSearchWithDouban(title) {
     const input = document.getElementById('searchInput');
     if (input) {
         input.value = safeTitle;
-        search(); // 使用已有的search函数执行搜索
+        await search(); // 使用已有的search函数执行搜索
+
+        if (window.innerWidth <= 768) {
+          window.scrollTo({
+              top: 0,
+              behavior: 'smooth'
+          });
+        }
     }
 }
 
@@ -286,7 +296,7 @@ function renderDoubanTags(tags) {
 
     // 先添加标签管理按钮
     const manageBtn = document.createElement('button');
-    manageBtn.className = 'py-1.5 px-3.5 rounded text-sm font-medium transition-all duration-300 bg-[#1a1a1a] text-gray-300 hover:bg-pink-700 hover:text-white';
+    manageBtn.className = 'py-1.5 px-3.5 rounded text-sm font-medium transition-all duration-300 bg-[#1a1a1a] text-gray-300 hover:bg-pink-700 hover:text-white border border-[#333] hover:border-white';
     manageBtn.innerHTML = '<span class="flex items-center"><svg class="w-3 h-3 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6v6m0 0v6m0-6h6m-6 0H6"></path></svg>管理标签</span>';
     manageBtn.onclick = function() {
         showTagManageModal();
@@ -298,13 +308,13 @@ function renderDoubanTags(tags) {
         const btn = document.createElement('button');
         
         // 设置样式
-        let btnClass = 'py-1.5 px-3.5 rounded text-sm font-medium transition-all duration-300 ';
+        let btnClass = 'py-1.5 px-3.5 rounded text-sm font-medium transition-all duration-300 border ';
         
         // 当前选中的标签使用高亮样式
         if (tag === doubanCurrentTag) {
-            btnClass += 'bg-pink-600 text-white shadow-md';
+            btnClass += 'bg-pink-600 text-white shadow-md border-white';
         } else {
-            btnClass += 'bg-[#1a1a1a] text-gray-300 hover:bg-pink-700 hover:text-white';
+            btnClass += 'bg-[#1a1a1a] text-gray-300 hover:bg-pink-700 hover:text-white border-[#333] hover:border-white';
         }
         
         btn.className = btnClass;
@@ -369,30 +379,17 @@ function renderRecommend(tag, pageLimit, pageStart) {
     const container = document.getElementById("douban-results");
     if (!container) return;
 
-    const loadingOverlay = document.createElement("div");
-    loadingOverlay.classList.add(
-        "absolute",
-        "inset-0",
-        "bg-gray-100",
-        "bg-opacity-75",
-        "flex",
-        "items-center",
-        "justify-center",
-        "z-10"
-    );
-
-    const loadingContent = document.createElement("div");
-    loadingContent.innerHTML = `
-      <div class="flex items-center justify-center">
-          <div class="w-6 h-6 border-2 border-pink-500 border-t-transparent rounded-full animate-spin inline-block"></div>
-          <span class="text-pink-500 ml-4">加载中...</span>
-      </div>
+    const loadingOverlayHTML = `
+        <div class="absolute inset-0 bg-black/80 backdrop-blur-sm flex items-center justify-center z-10">
+            <div class="flex items-center justify-center">
+                <div class="w-6 h-6 border-2 border-pink-500 border-t-transparent rounded-full animate-spin inline-block"></div>
+                <span class="text-pink-500 ml-4">加载中...</span>
+            </div>
+        </div>
     `;
-    loadingOverlay.appendChild(loadingContent);
 
-    // 冻结原有内容，并添加加载状态
     container.classList.add("relative");
-    container.appendChild(loadingOverlay);
+    container.insertAdjacentHTML('beforeend', loadingOverlayHTML);
     
     const target = `https://movie.douban.com/j/search_subjects?type=${doubanMovieTvCurrentSwitch}&tag=${tag}&sort=recommend&page_limit=${pageLimit}&page_start=${pageStart}`;
     
@@ -513,7 +510,7 @@ function renderDoubanCards(data, container) {
                         <span class="text-yellow-400">★</span> ${safeRate}
                     </div>
                     <div class="absolute bottom-2 right-2 bg-black/70 text-white text-xs px-2 py-1 rounded-sm hover:bg-[#333] transition-colors">
-                        <a href="${item.url}" target="_blank" rel="noopener noreferrer" title="在豆瓣查看">
+                        <a href="${item.url}" target="_blank" rel="noopener noreferrer" title="在豆瓣查看" onclick="event.stopPropagation();">
                             🔗
                         </a>
                     </div>
@@ -556,7 +553,7 @@ function showTagManageModal() {
     // 创建模态框元素
     modal = document.createElement('div');
     modal.id = 'tagManageModal';
-    modal.className = 'fixed inset-0 bg-black bg-opacity-75 flex items-center justify-center z-50';
+    modal.className = 'fixed inset-0 bg-black bg-opacity-75 flex items-center justify-center z-40';
     
     // 当前使用的标签类型和默认标签
     const isMovie = doubanMovieTvCurrentSwitch === 'movie';

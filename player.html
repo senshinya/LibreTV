@@ -4,7 +4,14 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>LibreTV 播放器</title>
+
+    <!-- Favicon -->
+    <link rel="icon" href="https://images.icon-icons.com/38/PNG/512/retrotv_5520.png">
+    <link rel="apple-touch-icon" href="https://images.icon-icons.com/38/PNG/512/retrotv_5520.png">
+    <link rel="manifest" href="manifest.json">
+
     <script src="libs/tailwindcss.min.js"></script>
+    <script src="js/wakelock.js"></script>
     <link rel="stylesheet" href="css/styles.css">
     <style>
         body, html {
@@ -77,7 +84,6 @@
         .episode-grid {
             max-height: 30vh;
             overflow-y: auto;
-            padding: 1rem 0;
         }
         .switch {
             position: relative;
@@ -153,12 +159,29 @@
         .player-container:fullscreen #player {
             width: 100%; height: 100%;
         }
+        
+        /* 新增：移动端响应式样式 */
+        @media (max-width: 640px) {
+            .episode-grid {
+                max-height: 40vh; /* 移动端增加集数列表高度 */
+            }
+            
+            /* 改进移动端按钮显示 */
+            button {
+                white-space: nowrap;
+            }
+            
+            /* 控制栏在小屏幕上可能需要换行 */
+            .player-container .flex-wrap {
+                margin-bottom: 4px;
+            }
+        }
     </style>
 </head>
 <body>
     <header class="bg-[#111] p-4 flex items-center border-b border-[#333] gap-2 player-header">
         <div class="flex items-center min-w-0">
-            <a href="index.html" class="flex items-center min-w-0">
+            <a href="/" class="flex items-center min-w-0">
                 <svg class="w-8 h-8 mr-2 text-[#00ccff] logo-icon" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 10l4.553-2.276A1 1 0 0121 8.618v6.764a1 1 0 01-1.447.894L15 14M5 18h8a2 2 0 002-2V8a2 2 0 00-2-2H5a2 2 0 00-2 2v8a2 2 0 002 2z"></path>
                 </svg>
@@ -166,7 +189,7 @@
             </a>
         </div>
         <h2 id="videoTitle" class="text-xl font-semibold flex-1 text-center overflow-x-auto whitespace-nowrap truncate custom-title-scroll"></h2>
-        <a href="index.html" class="px-4 py-2 bg-[#222] hover:bg-[#333] border border-[#333] rounded-lg transition-colors flex items-center min-w-0 home-btn">
+        <a href="/" class="px-4 py-2 bg-[#222] hover:bg-[#333] border border-[#333] rounded-lg transition-colors flex items-center min-w-0 home-btn">
             <svg xmlns="http://www.w3.org/2000/svg" class="w-5 h-5 mr-1" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
               <path d="M19 21V9.5l-7-5-7 5V21a2 2 0 0 0 2 2h10a2 2 0 0 0 2-2z" />
               <path d="M9 22V12h6v10" />
@@ -230,27 +253,44 @@
         </div>
 
         <!-- 添加自动播放开关和排序按钮 -->
-        <div class="player-container">
-            <div class="flex justify-end items-center mb-4 gap-2">
-                <span class="text-gray-400 text-sm">自动连播</span>
-                <label class="switch">
-                    <input type="checkbox" id="autoplayToggle">
-                    <span class="slider"></span>
-                </label>
-                <button onclick="toggleEpisodeOrder()" class="ml-4 px-4 py-2 bg-gradient-to-r from-indigo-500 via-purple-500 to-pink-500 text-white font-semibold rounded-full shadow-lg hover:shadow-xl transition-all duration-300 flex items-center justify-center space-x-2">
-                    <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" id="orderIcon" viewBox="0 0 20 20" fill="currentColor">
-                        <path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm1-11a1 1 0 10-2 0v3.586L7.707 9.293a1 1 0 00-1.414 1.414l3 3a1 1 0 001.414 0l3-3a1 1 0 00-1.414-1.414L11 10.586V7z" clip-rule="evenodd" />
-                    </svg>
-                    <span id="orderText">倒序排列</span>
-                </button>
-                <button id="lockToggle" onclick="toggleControlsLock()" title="锁定控制" 
-                        class="px-2 py-1 bg-[#333] hover:bg-[#444] text-white rounded-full transition">
-                    <svg id="lockIcon" class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <!-- 默认状态：未锁图标 -->
-                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-                              d="M15 11V7a3 3 0 00-6 0v4m-3 4h12v6H6v-6z" />
-                    </svg>
-                </button>
+        <div class="player-container mb-2">
+            <div class="flex flex-wrap justify-end items-center gap-2">
+                <!-- 自动连播开关 - 分组到左边 -->
+                <div class="flex items-center gap-1 flex-shrink-0 mr-auto">
+                    <span class="text-gray-400 text-sm whitespace-nowrap">自动连播</span>
+                    <label class="switch">
+                        <input type="checkbox" id="autoplayToggle">
+                        <span class="slider"></span>
+                    </label>
+                </div>
+                
+                <!-- 把各种功能按钮放在右侧 - 在小屏幕上各自占一行 -->
+                <div class="flex flex-wrap justify-end gap-2">
+                    <!-- 倒序排列按钮 -->
+                    <button onclick="toggleEpisodeOrder()" class="px-3 py-1 bg-[#222] hover:bg-[#333] border border-[#333] rounded-lg transition-colors flex items-center space-x-1 flex-shrink-0">
+                        <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" id="orderIcon" viewBox="0 0 20 20" fill="currentColor">
+                            <path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm1-11a1 1 0 10-2 0v3.586L7.707 9.293a1 1 0 00-1.414 1.414l3 3a1 1 0 001.414 0l3-3a1 1 0 00-1.414-1.414L11 10.586V7z" clip-rule="evenodd" />
+                        </svg>
+                        <span id="orderText">倒序排列</span>
+                    </button>
+                    
+                    <!-- 复制链接按钮 -->
+                    <button title="复制播放链接" onclick="copyLinks()" class="px-2 py-1 bg-[#222] hover:bg-[#333] border border-[#333] text-white rounded-lg transition">
+                        <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 5H6a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2v-1M8 5a2 2 0 002 2h2a2 2 0 002-2M8 5a2 2 0 012-2h2a2 2 0 012 2m0 0h2a2 2 0 012 2v3m2 4H10m0 0l3-3m-3 3l3 3" />
+                        </svg>
+                    </button>
+                    
+                    <!-- 锁定控制按钮 - 始终显示在最右侧 -->
+                    <button id="lockToggle" onclick="toggleControlsLock()" title="锁定控制" 
+                            class="px-2 py-1 bg-[#222] hover:bg-[#333] border border-[#333] text-white rounded-lg transition flex-shrink-0">
+                        <svg id="lockIcon" class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <!-- 默认状态：未锁图标 -->
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                d="M15 11V7a3 3 0 00-6 0v4m-3 4h12v6H6v-6z" />
+                        </svg>
+                    </button>
+                </div>
             </div>
         </div>
 
@@ -273,6 +313,35 @@
         <span id="shortcutText"></span>
     </div>
 
+    <!-- 页脚区域 -->
+    <footer class="footer mt-2 py-6 border-t border-[#333] bg-[#0a0a0a]">
+        <div class="container mx-auto px-4">
+            <div class="flex flex-col md:flex-row justify-between items-center">
+                <div class="mb-4 md:mb-0">
+                    <div class="flex items-center justify-center md:justify-start">
+                        <svg class="w-6 h-6 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 10l4.553-2.276A1 1 0 0121 8.618v6.764a1 1 0 01-1.447.894L15 14M5 18h8a2 2 0 002-2V8a2 2 0 00-2-2H5a2 2 0 00-2 2v8a2 2 0 002 2z"></path>
+                        </svg>
+                        <span class="gradient-text font-bold">LibreTV</span>
+                    </div>
+                    <p class="text-gray-500 text-sm mt-2 text-center md:text-left">© 2025 LibreTV - 自由观影，畅享精彩</p>
+                </div>
+                
+                <div class="text-center md:text-right">
+                    <p class="text-gray-500 text-sm max-w-md">
+                        免责声明：本站仅为视频搜索工具，不存储、上传或分发任何视频内容。
+                        所有视频均来自第三方API接口。如有侵权，请联系相关内容提供方。
+                    </p>
+                    <div class="mt-2 flex justify-center md:justify-end space-x-4">
+                        <a href="about.html" class="text-gray-400 hover:text-white text-sm transition-colors">关于我们</a>
+                        <a href="privacy.html" class="text-gray-400 hover:text-white text-sm transition-colors">隐私政策</a>
+                        <a href="https://help.unicef.org/#donation-form" target="_blank" rel="noopener" class="text-blue-400 hover:text-blue-300 text-sm transition-colors">捐赠</a>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </footer>
+
     <!-- 引入纯 JS sha256（HTTP 下依然可用） -->
     <script src="libs/sha256.min.js"></script>
     <script>
@@ -285,6 +354,7 @@
 
     <script src="js/config.js"></script>
     <script src="js/password.js"></script>
+    <script src="js/ui.js"></script>
 
     <script>
         // 创建全局环境变量对象
@@ -590,7 +660,7 @@
                 video: {
                     url: videoUrl,
                     type: 'hls',
-                    pic: 'https://img.picgo.net/2025/04/12/image362e7d38b4af4a74.png', // 设置视频封面图
+                    pic: 'image/nomedia.png', // 设置视频封面图
                     customType: {
                         hls: function(video, player) {
                             // 清理之前的HLS实例
@@ -977,7 +1047,7 @@
                 html += `
                     <button id="episode-${realIndex}" 
                             onclick="playEpisode(${realIndex})" 
-                            class="px-4 py-2 ${isActive ? 'episode-active' : 'bg-[#222] hover:bg-[#333]'} border ${isActive ? 'border-blue-500' : 'border-[#333]'} rounded-lg transition-colors text-center episode-btn">
+                            class="px-4 py-2 ${isActive ? 'episode-active' : '!bg-[#222] hover:!bg-[#333] hover:!shadow-none'} !border ${isActive ? '!border-blue-500' : '!border-[#333]'} rounded-lg transition-colors text-center episode-btn">
                         第${realIndex + 1}集
                     </button>
                 `;
@@ -1085,6 +1155,20 @@
         function playNextEpisode() {
             if (currentEpisodeIndex < currentEpisodes.length - 1) {
                 playEpisode(currentEpisodeIndex + 1);
+            }
+        }
+
+        // 复制播放链接
+        function copyLinks() {
+            // 尝试从URL中获取参数
+            const urlParams = new URLSearchParams(window.location.search);
+            const linkUrl = urlParams.get('url') || '';
+            if (linkUrl !== '') {
+                navigator.clipboard.writeText(linkUrl).then(() => {
+                    showToast('播放链接已复制', 'success');
+                }).catch(err => {
+                    showToast('复制失败，请检查浏览器权限', 'error');
+                });
             }
         }
 
@@ -1516,54 +1600,6 @@
         function getVideoId() {
             // 使用视频标题和集数索引作为唯一标识
             return `${encodeURIComponent(currentVideoTitle)}_${currentEpisodeIndex}`;
-        }
-
-        // 简单的Toast消息提示函数
-        function showToast(message, type = 'error') {
-            // 如果已有Toast，先移除它
-            const existingToast = document.getElementById('custom-toast');
-            if (existingToast) {
-                document.body.removeChild(existingToast);
-            }
-            
-            // 创建新的Toast元素
-            const toast = document.createElement('div');
-            toast.id = 'custom-toast';
-            
-            // 设置Toast样式
-            toast.style.position = 'fixed';
-            toast.style.top = '20px';
-            toast.style.left = '50%';
-            toast.style.transform = 'translateX(-50%)';
-            toast.style.backgroundColor = type === 'error' ? '#f44336' : '#4caf50';
-            toast.style.color = 'white';
-            toast.style.padding = '12px 20px';
-            toast.style.borderRadius = '4px';
-            toast.style.zIndex = '10000';
-            toast.style.boxShadow = '0 2px 8px rgba(0, 0, 0, 0.3)';
-            toast.style.opacity = '0';
-            toast.style.transition = 'opacity 0.3s ease-in-out';
-            
-            // 设置Toast内容
-            toast.textContent = message;
-            
-            // 添加到页面
-            document.body.appendChild(toast);
-            
-            // 显示Toast
-            setTimeout(() => {
-                toast.style.opacity = '1';
-                
-                // 3秒后隐藏并移除
-                setTimeout(() => {
-                    toast.style.opacity = '0';
-                    setTimeout(() => {
-                        if (toast.parentNode) {
-                            document.body.removeChild(toast);
-                        }
-                    }, 300);
-                }, 3000);
-            }, 10);
         }
 
         let controlsLocked = false;
