@@ -17,26 +17,51 @@
     document.head.appendChild(style);
 })();
 
+// 获取版本信息
+async function fetchVersion(url, errorMessage, options = {}) {
+    const response = await fetch(url, options);
+    if (!response.ok) {
+        throw new Error(errorMessage);
+    }
+    return await response.text();
+}
+
 // 版本检查函数
 async function checkForUpdates() {
     try {
-        const currentVersionResponse = await fetch('/VERSION.txt', {
+        // 获取当前版本
+        const currentVersion = await fetchVersion('/VERSION.txt', '获取当前版本失败', {
             cache: 'no-store'
         });
         
-        if (!currentVersionResponse.ok) {
-            throw new Error('获取当前版本失败');
-        }
-        
-        const currentVersion = await currentVersionResponse.text();
-        
         // 获取最新版本
-        const latestVersionResponse = await fetch('https://raw.githubusercontent.com/LibreSpark/LibreTV/main/VERSION.txt');
-        if (!latestVersionResponse.ok) {
-            throw new Error('获取最新版本失败');
-        }
+        let latestVersion;
+        const VERSION_URL = {
+            PROXY: 'https://raw.ihtw.moe/raw.githubusercontent.com/LibreSpark/LibreTV/main/VERSION.txt',
+            DIRECT: 'https://raw.githubusercontent.com/LibreSpark/LibreTV/main/VERSION.txt'
+        };
+        const FETCH_TIMEOUT = 1500;
         
-        const latestVersion = await latestVersionResponse.text();
+        try {
+            // 尝试使用代理URL获取最新版本
+            const proxyPromise = fetchVersion(VERSION_URL.PROXY, '代理请求失败');
+            const timeoutPromise = new Promise((_, reject) => 
+                setTimeout(() => reject(new Error('代理请求超时')), FETCH_TIMEOUT)
+            );
+            
+            latestVersion = await Promise.race([proxyPromise, timeoutPromise]);
+            console.log('通过代理服务器获取版本成功');
+        } catch (error) {
+            console.log('代理请求失败，尝试直接请求:', error.message);
+            try {
+                // 代理失败后尝试直接获取
+                latestVersion = await fetchVersion(VERSION_URL.DIRECT, '获取最新版本失败');
+                console.log('直接请求获取版本成功');
+            } catch (directError) {
+                console.error('所有版本检查请求均失败:', directError);
+                throw new Error('无法获取最新版本信息');
+            }
+        }
         
         console.log('当前版本:', currentVersion);
         console.log('最新版本:', latestVersion);
@@ -88,7 +113,7 @@ function createErrorVersionElement(errorMessage) {
     const errorElement = document.createElement('p');
     errorElement.className = 'text-gray-500 text-sm mt-1 text-center md:text-left';
     errorElement.innerHTML = `版本: <span class="text-amber-500">检测失败</span>`;
-    errorElement.title = errorMessage || "无法连接到 Github";
+    errorElement.title = errorMessage;
     return errorElement;
 }
 
