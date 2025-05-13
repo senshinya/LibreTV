@@ -77,14 +77,35 @@
         .error-icon {
             font-size: 48px;
             margin-bottom: 10px;
-        }
-        .episode-active {
+        }        .episode-active {
             background-color: #3b82f6 !important;
             border-color: #60a5fa !important;
         }
         .episode-grid {
             max-height: 30vh;
             overflow-y: auto;
+        }
+        /* 恢复播放位置提示样式 */
+        .position-restore-hint {
+            position: fixed;
+            bottom: 20px;
+            left: 50%;
+            transform: translateX(-50%) translateY(100%);
+            background-color: rgba(0, 0, 0, 0.8);
+            color: white;
+            padding: 10px 20px;
+            border-radius: 4px;
+            z-index: 1000;
+            transition: transform 0.3s ease;
+            font-size: 14px;
+        }
+        .position-restore-hint.show {
+            transform: translateX(-50%) translateY(0);
+        }
+        .hint-content {
+            display: flex;
+            align-items: center;
+            justify-content: center;
         }
         .switch {
             position: relative;
@@ -382,6 +403,7 @@
         let shortcutHintTimeout = null; // 用于控制快捷键提示显示时间
         let adFilteringEnabled = true; // 默认开启广告过滤
         let progressSaveInterval = null; // 定期保存进度的计时器
+        let currentVideoUrl = ''; // 记录当前实际的视频URL
 
         // 页面加载
         document.addEventListener('DOMContentLoaded', function() {
@@ -400,17 +422,52 @@
             document.getElementById('loading').style.display = 'block';
 
             initializePageContent();
-        });
-
-        // 初始化页面内容
+        });        // 初始化页面内容
         function initializePageContent() {
             // 解析URL参数
             const urlParams = new URLSearchParams(window.location.search);
-            const videoUrl = urlParams.get('url');
+            let videoUrl = urlParams.get('url');
             const title = urlParams.get('title');
             const sourceCode = urlParams.get('source_code');
             let index = parseInt(urlParams.get('index') || '0');
-            const episodesList = urlParams.get('episodes'); // 新增：从URL获取集数信息
+            const episodesList = urlParams.get('episodes'); // 从URL获取集数信息
+            const savedPosition = parseInt(urlParams.get('position') || '0'); // 获取保存的播放位置
+              // 解决历史记录问题：检查URL是否是player.html开头的链接
+            // 如果是，说明这是历史记录重定向，需要解析真实的视频URL
+            if (videoUrl && videoUrl.includes('player.html')) {
+                console.log('检测到历史记录重定向URL:', videoUrl);
+                try {
+                    // 尝试从嵌套URL中提取真实的视频链接
+                    const nestedUrlParams = new URLSearchParams(videoUrl.split('?')[1]);
+                    // 从嵌套参数中获取真实视频URL
+                    const nestedVideoUrl = nestedUrlParams.get('url');
+                    // 检查嵌套URL是否包含播放位置信息
+                    const nestedPosition = nestedUrlParams.get('position');
+                    
+                    if (nestedVideoUrl) {
+                        videoUrl = nestedVideoUrl;
+                        console.log('已修正为真实视频URL:', videoUrl);
+                        
+                        // 如果嵌套URL中有播放位置参数，且当前URL没有，则添加到当前URL
+                        if (nestedPosition && !urlParams.has('position')) {
+                            // 更新当前URL参数
+                            const url = new URL(window.location.href);
+                            url.searchParams.set('position', nestedPosition);
+                            // 替换当前URL（不刷新页面）
+                            window.history.replaceState({}, '', url);
+                            console.log('从嵌套URL提取播放位置:', nestedPosition);
+                        }
+                    } else {
+                        console.warn('无法从重定向URL中提取视频链接');
+                        showError('历史记录链接无效，请返回首页重新访问');
+                    }
+                } catch (e) {
+                    console.error('解析嵌套URL出错:', e);
+                }
+            }
+            
+            // 保存当前视频URL
+            currentVideoUrl = videoUrl || '';
 
             // 从localStorage获取数据
             currentVideoTitle = title || localStorage.getItem('currentVideoTitle') || '未知视频';
@@ -476,20 +533,6 @@
             // 初始化播放器
             if (videoUrl) {
                 initPlayer(videoUrl, sourceCode);
-                
-                // 尝试从URL参数中恢复播放位置
-                const position = urlParams.get('position');
-                if (position) {
-                    setTimeout(() => {
-                        if (dp && dp.video) {
-                            const positionNum = parseInt(position);
-                            if (!isNaN(positionNum) && positionNum > 0) {
-                                dp.seek(positionNum);
-                                showPositionRestoreHint(positionNum);
-                            }
-                        }
-                    }, 1500);
-                }
             } else {
                 showError('无效的视频链接');
             }
@@ -791,8 +834,7 @@
                     console.warn('当前浏览器不支持锁定屏幕方向，请手动旋转设备。');
                 }
             });
-            
-            // 全屏取消时解锁屏幕方向
+              // 全屏取消时解锁屏幕方向
             dp.on('fullscreen_cancel', () => {
                 if (window.screen.orientation && window.screen.orientation.unlock) {
                     window.screen.orientation.unlock();
@@ -802,8 +844,38 @@
             dp.on('loadedmetadata', function() {
                 document.getElementById('loading').style.display = 'none';
                 videoHasEnded = false; // 视频加载时重置结束标志
+
+                // 优先使用URL传递的position参数
+                const urlParams = new URLSearchParams(window.location.search);
+                const savedPosition = parseInt(urlParams.get('position') || '0');
                 
-                // 视频加载完成后重新设置进度条点击监听
+                if (savedPosition > 10 && dp && dp.video && dp.video.duration > 0 && savedPosition < dp.video.duration - 2) {
+                    // 如果URL中有有效的播放位置参数，直接使用它
+                    dp.seek(savedPosition);
+                    showPositionRestoreHint(savedPosition);
+                } else {
+                    // 否则尝试从本地存储恢复播放进度
+                    try {
+                        const progressKey = 'videoProgress_' + currentVideoUrl;
+                        const progressStr = localStorage.getItem(progressKey);
+                        if (progressStr && dp && dp.video && dp.video.duration > 0) {
+                            const progress = JSON.parse(progressStr);
+                            if (
+                                progress &&
+                                typeof progress.position === 'number' &&
+                                progress.position > 10 &&
+                                progress.position < dp.video.duration - 2
+                            ) {
+                                dp.seek(progress.position);
+                                showPositionRestoreHint(progress.position);
+                            }
+                        }
+                    } catch (e) {
+                        // ignore
+                    }
+                }
+
+                // 视频加载成功后重新设置进度条点击监听
                 setupProgressBarPreciseClicks();
                 
                 // 视频加载成功后，在稍微延迟后将其添加到观看历史
@@ -899,7 +971,15 @@
                     }
                 }
             });
-            
+
+            // 添加双击全屏支持
+            dp.on('playing', () => {
+                // 绑定双击事件到视频容器
+                dp.video.addEventListener('dblclick', () => {
+                    dp.fullScreen.toggle();
+                });
+            });
+
             // 10秒后如果仍在加载，但不立即显示错误
             setTimeout(function() {
                 // 如果视频已经播放开始，则不显示错误
@@ -1087,6 +1167,8 @@
             `;
             
             const url = currentEpisodes[index];
+            // 更新全局URL记录
+            currentVideoUrl = url;
             currentEpisodeIndex = index;
             videoHasEnded = false; // 重置视频结束标志
             
@@ -1276,9 +1358,10 @@
         
         // 在播放器初始化后添加视频到历史记录
         function saveToHistory() {
-            // 确保 currentEpisodes 非空
-            if (!currentEpisodes || currentEpisodes.length === 0) {
-                console.warn('没有可用的剧集列表，无法保存完整的历史记录');
+            // 确保 currentEpisodes 非空且有当前视频URL
+            if (!currentEpisodes || currentEpisodes.length === 0 || !currentVideoUrl) {
+                console.warn('没有可用的剧集列表或视频URL，无法保存完整的历史记录');
+                return;
             }
             
             // 尝试从URL中获取参数
@@ -1298,8 +1381,10 @@
             // 构建要保存的视频信息对象
             const videoInfo = {
                 title: currentVideoTitle,
-                // 创建基础URL，使用标题作为唯一标识符
-                url: `player.html?title=${encodeURIComponent(currentVideoTitle)}&source=${encodeURIComponent(sourceName)}&source_code=${encodeURIComponent(sourceCode)}`,
+                // 直接保存原始视频链接，而非播放页面链接
+                directVideoUrl: currentVideoUrl,
+                // 完整的播放器URL，修改格式确保正确传递视频链接
+                url: `player.html?url=${encodeURIComponent(currentVideoUrl)}&title=${encodeURIComponent(currentVideoTitle)}&source=${encodeURIComponent(sourceName)}&source_code=${encodeURIComponent(sourceCode)}&index=${currentEpisodeIndex}`,
                 episodeIndex: currentEpisodeIndex,
                 sourceName: sourceName,
                 timestamp: Date.now(),
@@ -1310,55 +1395,51 @@
                 episodes: currentEpisodes && currentEpisodes.length > 0 ? [...currentEpisodes] : []
             };
             
-            // 如果外部定义了addToViewingHistory函数，则调用它
-            if (typeof addToViewingHistory === 'function') {
-                addToViewingHistory(videoInfo);
-                console.log(`已保存 "${currentVideoTitle}" 的历史记录, 集数数据: ${currentEpisodes.length}集`);
-            } else {
-                // 否则直接使用本地实现
-                try {
-                    const history = JSON.parse(localStorage.getItem('viewingHistory') || '[]');
-                    
-                    // 检查是否已经存在相同标题的记录（同一视频的不同集数）
-                    const existingIndex = history.findIndex(item => item.title === videoInfo.title);
-                    if (existingIndex !== -1) {
-                        // 存在则更新现有记录的集数、时间戳和URL
-                        history[existingIndex].episodeIndex = currentEpisodeIndex;
-                        history[existingIndex].timestamp = Date.now();
-                        history[existingIndex].sourceName = sourceName
-                        // 更新播放进度信息
-                        history[existingIndex].playbackPosition = currentPosition > 10 ? currentPosition : history[existingIndex].playbackPosition;
-                        history[existingIndex].duration = videoDuration || history[existingIndex].duration;
-                        // 同时更新URL以保存当前的集数状态
-                        history[existingIndex].url = window.location.href;
-                        // 更新集数列表（如果有且与当前不同）
-                        if (currentEpisodes && currentEpisodes.length > 0) {
-                            // 检查是否需要更新集数数据（针对不同长度的集数列表）
-                            if (!history[existingIndex].episodes || 
-                                !Array.isArray(history[existingIndex].episodes) || 
-                                history[existingIndex].episodes.length !== currentEpisodes.length) {
-                                history[existingIndex].episodes = [...currentEpisodes]; // 深拷贝
-                                console.log(`更新 "${currentVideoTitle}" 的剧集数据: ${currentEpisodes.length}集`);
-                            }
+            try {
+                // 获取现有历史记录
+                const history = JSON.parse(localStorage.getItem('viewingHistory') || '[]');
+                
+                // 检查是否已经存在相同标题的记录（同一视频的不同集数）
+                const existingIndex = history.findIndex(item => item.title === videoInfo.title);
+                if (existingIndex !== -1) {
+                    // 存在则更新现有记录的集数、时间戳和URL
+                    history[existingIndex].episodeIndex = currentEpisodeIndex;
+                    history[existingIndex].timestamp = Date.now();
+                    history[existingIndex].sourceName = sourceName;
+                    // 更新原始视频URL
+                    history[existingIndex].directVideoUrl = currentVideoUrl;
+                    // 更新播放进度信息
+                    history[existingIndex].playbackPosition = currentPosition > 10 ? currentPosition : history[existingIndex].playbackPosition;
+                    history[existingIndex].duration = videoDuration || history[existingIndex].duration;
+                    // 更新完整URL，确保带有正确的视频链接
+                    history[existingIndex].url = videoInfo.url;
+                    // 更新集数列表（如果有且与当前不同）
+                    if (currentEpisodes && currentEpisodes.length > 0) {
+                        // 检查是否需要更新集数数据（针对不同长度的集数列表）
+                        if (!history[existingIndex].episodes || 
+                            !Array.isArray(history[existingIndex].episodes) || 
+                            history[existingIndex].episodes.length !== currentEpisodes.length) {
+                            history[existingIndex].episodes = [...currentEpisodes]; // 深拷贝
+                            console.log(`更新 "${currentVideoTitle}" 的剧集数据: ${currentEpisodes.length}集`);
                         }
-                        
-                        // 移到最前面
-                        const updatedItem = history.splice(existingIndex, 1)[0];
-                        history.unshift(updatedItem);
-                    } else {
-                        // 添加新记录到最前面，但保存完整URL以便能直接打开到正确的集数
-                        videoInfo.url = window.location.href;
-                        console.log(`创建新的历史记录: "${currentVideoTitle}", ${currentEpisodes.length}集`);
-                        history.unshift(videoInfo);
                     }
                     
-                    // 限制历史记录数量为50条
-                    if (history.length > 50) history.splice(50);
-                    
-                    localStorage.setItem('viewingHistory', JSON.stringify(history));
-                } catch (e) {
-                    console.error('保存观看历史失败:', e);
+                    // 移到最前面
+                    const updatedItem = history.splice(existingIndex, 1)[0];
+                    history.unshift(updatedItem);
+                } else {
+                    // 添加新记录到最前面
+                    console.log(`创建新的历史记录: "${currentVideoTitle}", ${currentEpisodes.length}集`);
+                    history.unshift(videoInfo);
                 }
+                
+                // 限制历史记录数量为50条
+                if (history.length > 50) history.splice(50);
+                
+                localStorage.setItem('viewingHistory', JSON.stringify(history));
+                console.log('成功保存历史记录');
+            } catch (e) {
+                console.error('保存观看历史失败:', e);
             }
         }
 
@@ -1611,7 +1692,7 @@
             const icon = document.getElementById('lockIcon');
             // 切换图标：锁 / 解锁
             icon.innerHTML = controlsLocked
-                ? '<path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d=\"M12 15v2m0-8V7a4 4 0 00-8 0v2m8 0H4v8h16v-8h-4z\"/>'
+                ? '<path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d=\"M12 15v2m0-8V7a4 4 0 00-8 0v2m8 0H4v8h16v-8H6v-6z\"/>'
                 : '<path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d=\"M15 11V7a3 3 0 00-6 0v4m-3 4h12v6H6v-6z\"/>';
         }
     </script>

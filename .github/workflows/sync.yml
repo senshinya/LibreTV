@@ -5,7 +5,7 @@ permissions:
 
 on:
   schedule:
-    - cron: "0 4 * * *" # At 04:00, every day
+    - cron: "0 4 * * *" # At 12PM UTC+8
   workflow_dispatch:
 
 jobs:
@@ -13,41 +13,21 @@ jobs:
     name: Sync latest commits from upstream repo
     runs-on: ubuntu-latest
     if: ${{ github.event.repository.fork }}
-    
-    # 添加全局环境变量，确保所有Git操作使用相同的身份
-    env:
-      GIT_AUTHOR_NAME: github-actions[bot]
-      GIT_AUTHOR_EMAIL: 41898282+github-actions[bot]@users.noreply.github.com
-      GIT_COMMITTER_NAME: github-actions[bot]
-      GIT_COMMITTER_EMAIL: 41898282+github-actions[bot]@users.noreply.github.com
 
     steps:
       # Step 1: run a standard checkout action
       - name: Checkout target repo
-        uses: actions/checkout@v3
-        with:
-          # 设置 token 以防止触发其他工作流
-          token: ${{ secrets.GITHUB_TOKEN }}
-
-      # Configure Git to disable email notifications
-      - name: Configure Git
-        run: |
-          git config --global user.name "github-actions[bot]"
-          git config --global user.email "41898282+github-actions[bot]@users.noreply.github.com"
-          git config --global --add notifications.enabled false
+        uses: actions/checkout@v4
 
       # Step 2: run the sync action
       - name: Sync upstream changes
         id: sync
-        uses: aormsby/Fork-Sync-With-Upstream-action@v3.4
+        uses: aormsby/Fork-Sync-With-Upstream-action@v3.4.1
         with:
           upstream_sync_repo: LibreSpark/LibreTV
           upstream_sync_branch: main
           target_sync_branch: main
           target_repo_token: ${{ secrets.GITHUB_TOKEN }}
-          git_config_user: github-actions[bot]
-          git_config_email: 41898282+github-actions[bot]@users.noreply.github.com
-          test_mode: false
 
       - name: Sync check
         if: failure()
