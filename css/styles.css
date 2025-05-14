@@ -1,3 +1,31 @@
+.close-btn {
+    position: absolute;
+    top: 12px;
+    right: 12px;
+    background: #222;
+    border: 1px solid #333;
+    border-radius: 8px;
+    padding: 6px;
+    color: white;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+    transition: all 0.2s ease;
+    z-index: 10;
+}
+
+.close-btn:hover {
+    background: #333;
+    border-color: #555;
+}
+
+.close-btn svg {
+    width: 16px;
+    height: 16px;
+    stroke: currentColor;
+}
+
 :root {
     /* 赛博影视主题配色方案 - 柔和版 */
     --primary-color: #00ccff;       /* 霓虹蓝主色调 */

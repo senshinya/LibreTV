@@ -500,17 +500,17 @@ function playFromHistory(url, title, episodeIndex, playbackPosition = 0) {
             if (playbackPosition > 10) {
                 playUrl.searchParams.set('position', Math.floor(playbackPosition).toString());
             }
-            window.location.href = playUrl.toString();
+            showVideoPlayer(playUrl.toString());
         } else {
             // 原始URL，构造player页面链接
             const playerUrl = `player.html?url=${encodeURIComponent(url)}&title=${encodeURIComponent(title)}&index=${episodeIndex}${positionParam}`;
-            window.location.href = playerUrl;
+            showVideoPlayer(playerUrl);
         }
     } catch (e) {
         console.error('从历史记录播放失败:', e);
         // 回退到原始简单URL
         const simpleUrl = `player.html?url=${encodeURIComponent(url)}&title=${encodeURIComponent(title)}&index=${episodeIndex}`;
-        window.location.href = simpleUrl;
+        showVideoPlayer(simpleUrl);
     }
 }
 
@@ -744,12 +744,13 @@ function showImportBox(fun) {
                     </div>
                     <div class="grid gap-2">
                         <h4 class="text-center text-white-900 text-sm font-medium leading-snug">将配置文件拖到此处，或手动选择文件</h4>
-                        <div class="flex items-center justify-center">
-                            <label>
-                                <input type="file" id="ChooseFile" hidden />
-                                <div class="flex w-28 h-9 px-2 flex-col bg-pink-600 rounded-full shadow text-white text-xs font-semibold leading-4 items-center justify-center cursor-pointer focus:outline-none">选择文件</div>
-                            </label>
-                        </div>
+                    <div class="flex items-center justify-center gap-2">
+                        <label>
+                            <input type="file" id="ChooseFile" hidden />
+                            <div class="flex w-28 h-9 px-2 flex-col bg-pink-600 rounded-full shadow text-white text-xs font-semibold leading-4 items-center justify-center cursor-pointer focus:outline-none">选择文件</div>
+                        </label>
+                        <button onclick="importConfigFromUrl()" class="flex w-28 h-9 px-2 flex-col bg-blue-600 rounded-full shadow text-white text-xs font-semibold leading-4 items-center justify-center cursor-pointer focus:outline-none">从URL导入</button>
+                    </div>
                     </div>
                 </div>
             </div>
