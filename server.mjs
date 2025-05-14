@@ -16,17 +16,22 @@ const password = process.env.PASSWORD || '';
 // 启用 CORS
 app.use(cors());
 
-app.get(['/', '/index.html', '/player.html'], async (req, res) => {
+app.get(['/', '/index.html', '/player.html', '/s=*'], async (req, res) => {
   try {
     let content;
-    switch (req.path) {
-      case '/':
-      case '/index.html':
-        content = fs.readFileSync(path.join(__dirname, 'index.html'), 'utf8');
-        break;
-      case '/player.html':
-        content = fs.readFileSync(path.join(__dirname, 'player.html'), 'utf8');
-        break;
+    // 处理搜索路径
+    if (req.path.startsWith('/s=')) {
+      content = fs.readFileSync(path.join(__dirname, 'index.html'), 'utf8');
+    } else {
+      switch (req.path) {
+        case '/':
+        case '/index.html':
+          content = fs.readFileSync(path.join(__dirname, 'index.html'), 'utf8');
+          break;
+        case '/player.html':
+          content = fs.readFileSync(path.join(__dirname, 'player.html'), 'utf8');
+          break;
+      }
     }
     if (password !== '') {
       const sha256 = await sha256Hash(password);

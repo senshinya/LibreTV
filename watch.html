@@ -5,8 +5,41 @@
     <meta http-equiv="refresh" content="0; url=player.html">
     <title>重定向到播放器</title>
     <link rel="manifest" href="manifest.json">
+    <script>
+        // 获取当前URL的参数，并将它们传递给player.html
+        window.onload = function() {
+            // 获取当前URL的查询参数
+            const currentParams = new URLSearchParams(window.location.search);
+            
+            // 创建player.html的URL
+            let playerUrl = "player.html";
+            
+            // 如果有查询参数，添加到player.html的URL
+            if (currentParams.toString()) {
+                playerUrl += "?" + currentParams.toString();
+            }
+            
+            // 获取来源URL (如果存在)
+            const referrer = document.referrer;
+            
+            // 如果有referrer并且包含搜索参数，保存它以便返回
+            if (referrer && (referrer.includes('/s=') || referrer.includes('?s='))) {
+                // 如果已经有参数，添加&，否则添加?
+                playerUrl += playerUrl.includes('?') ? '&' : '?';
+                playerUrl += 'referrer=' + encodeURIComponent(referrer);
+                
+                // 同时保存在localStorage中，作为备用
+                localStorage.setItem('lastSearchPage', referrer);
+            }
+            
+            // 重定向到播放器页面
+            window.location.href = playerUrl;
+        };
+    </script>
 </head>
 <body>
-    <p>如果您没有被自动重定向，请<a href="player.html">点击这里</a>前往播放页面。</p>
+    <div style="text-align: center; padding-top: 100px;">
+        正在重定向到播放器...
+    </div>
 </body>
 </html>

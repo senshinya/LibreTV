@@ -489,13 +489,26 @@ function setupEventListeners() {
     }
   });
 
-    // 点击外部关闭设置面板
+    // 点击外部关闭设置面板和历史记录面板
     document.addEventListener('click', function(e) {
-        const panel = document.getElementById('settingsPanel');
-        const settingsButton = document.querySelector('button[onclick="toggleSettings(event)"]');
+        // 关闭设置面板
+        const settingsPanel = document.querySelector('#settingsPanel.show');
+        const settingsButton = document.querySelector('#settingsPanel .close-btn');
         
-        if (!panel.contains(e.target) && !settingsButton.contains(e.target) && panel.classList.contains('show')) {
-            panel.classList.remove('show');
+        if (settingsPanel && settingsButton && 
+            !settingsPanel.contains(e.target) && 
+            !settingsButton.contains(e.target)) {
+            settingsPanel.classList.remove('show');
+        }
+
+        // 关闭历史记录面板
+        const historyPanel = document.querySelector('#historyPanel.show');
+        const historyButton = document.querySelector('#historyPanel .close-btn');
+        
+        if (historyPanel && historyButton && 
+            !historyPanel.contains(e.target) && 
+            !historyButton.contains(e.target)) {
+            historyPanel.classList.remove('show');
         }
     });
     
@@ -549,6 +562,19 @@ function resetSearchArea() {
     // 如果有豆瓣功能，检查是否需要显示豆瓣推荐区域
     if (typeof updateDoubanVisibility === 'function') {
         updateDoubanVisibility();
+    }
+    
+    // 重置URL为主页
+    try {
+        window.history.pushState(
+            {}, 
+            `LibreTV - 免费在线视频搜索与观看平台`, 
+            `/`
+        );
+        // 更新页面标题
+        document.title = `LibreTV - 免费在线视频搜索与观看平台`;
+    } catch (e) {
+        console.error('更新浏览器历史失败:', e);
     }
 }
 
@@ -752,6 +778,23 @@ async function search() {
       hideLoading();
       return;
     }
+
+        // 有搜索结果时，才更新URL
+        try {
+            // 使用URI编码确保特殊字符能够正确显示
+            const encodedQuery = encodeURIComponent(query);
+            // 使用HTML5 History API更新URL，不刷新页面
+            window.history.pushState(
+                { search: query }, 
+                `搜索: ${query} - LibreTV`, 
+                `/s=${encodedQuery}`
+            );
+            // 更新页面标题
+            document.title = `搜索: ${query} - LibreTV`;
+        } catch (e) {
+            console.error('更新浏览器历史失败:', e);
+            // 如果更新URL失败，继续执行搜索
+        }
 
         // 处理搜索结果过滤：如果启用了黄色内容过滤，则过滤掉分类含有敏感内容的项目
         const yellowFilterEnabled = localStorage.getItem('yellowFilterEnabled') === 'true';
@@ -1002,9 +1045,28 @@ function playVideo(url, vod_name, sourceCode, episodeIndex = 0) {
     
     // 构建播放页面URL，传递必要参数
     const playerUrl = `player.html?url=${encodeURIComponent(url)}&title=${encodeURIComponent(videoTitle)}&index=${episodeIndex}&source=${encodeURIComponent(sourceName)}&source_code=${encodeURIComponent(sourceCode)}`;
-    
-    // 在当前标签页中打开播放页面
-    window.location.href = playerUrl;
+    showVideoPlayer(playerUrl);
+}
+
+// 弹出播放器页面
+function showVideoPlayer(url) {
+    // 临时隐藏搜索结果，防止高度超出播放器而出现滚动条
+    document.getElementById('resultsArea').classList.add('hidden');
+    // 在框架中打开播放页面
+    videoPlayerFrame = document.createElement('iframe');
+    videoPlayerFrame.id = 'VideoPlayerFrame';
+    videoPlayerFrame.className = 'fixed w-full h-screen z-40';
+    videoPlayerFrame.src = url;
+    document.body.appendChild(videoPlayerFrame);
+}
+
+// 关闭播放器页面
+function closeVideoPlayer() {
+    videoPlayerFrame = document.getElementById('VideoPlayerFrame');
+    if (videoPlayerFrame) {
+        videoPlayerFrame.remove();
+        document.getElementById('resultsArea').classList.remove('hidden');
+    }
 }
 
 // 播放上一集
@@ -1077,6 +1139,118 @@ function toggleEpisodeOrder(sourceCode) {
     }
 }
 
+// 从URL导入配置
+async function importConfigFromUrl() {
+    // 创建模态框元素
+    let modal = document.getElementById('importUrlModal');
+    if (modal) {
+        document.body.removeChild(modal);
+    }
+
+    modal = document.createElement('div');
+    modal.id = 'importUrlModal';
+    modal.className = 'fixed inset-0 bg-black bg-opacity-75 flex items-center justify-center z-40';
+
+    modal.innerHTML = `
+        <div class="bg-[#191919] rounded-lg p-6 max-w-md w-full max-h-[90vh] overflow-y-auto relative">
+            <button id="closeUrlModal" class="absolute top-4 right-4 text-gray-400 hover:text-white text-xl">&times;</button>
+            
+            <h3 class="text-xl font-bold mb-4">从URL导入配置</h3>
+            
+            <div class="mb-4">
+                <input type="text" id="configUrl" placeholder="输入配置文件URL" 
+                       class="w-full px-3 py-2 bg-[#222] border border-[#333] rounded-lg text-white focus:outline-none focus:ring-1 focus:ring-blue-500">
+            </div>
+            
+            <div class="flex justify-end space-x-2">
+                <button id="confirmUrlImport" class="bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded">导入</button>
+                <button id="cancelUrlImport" class="bg-[#444] hover:bg-[#555] text-white px-4 py-2 rounded">取消</button>
+            </div>
+        </div>`;
+
+    document.body.appendChild(modal);
+
+    // 关闭按钮事件
+    document.getElementById('closeUrlModal').addEventListener('click', () => {
+        document.body.removeChild(modal);
+    });
+
+    // 取消按钮事件
+    document.getElementById('cancelUrlImport').addEventListener('click', () => {
+        document.body.removeChild(modal);
+    });
+
+    // 确认导入按钮事件
+    document.getElementById('confirmUrlImport').addEventListener('click', async () => {
+        const url = document.getElementById('configUrl').value.trim();
+        if (!url) {
+            showToast('请输入配置文件URL', 'warning');
+            return;
+        }
+
+        // 验证URL格式
+        try {
+            const urlObj = new URL(url);
+            if (urlObj.protocol !== 'http:' && urlObj.protocol !== 'https:') {
+                showToast('URL必须以http://或https://开头', 'warning');
+                return;
+            }
+        } catch (e) {
+            showToast('URL格式不正确', 'warning');
+            return;
+        }
+
+        showLoading('正在从URL导入配置...');
+        
+        try {
+            // 获取配置文件 - 直接请求URL
+            const response = await fetch(url, {
+                mode: 'cors',
+                headers: {
+                    'Accept': 'application/json'
+                }
+            });
+            if (!response.ok) throw '获取配置文件失败';
+
+            // 验证响应内容类型
+            const contentType = response.headers.get('content-type');
+            if (!contentType || !contentType.includes('application/json')) {
+                throw '响应不是有效的JSON格式';
+            }
+
+            const config = await response.json();
+            if (config.name !== 'LibreTV-Settings') throw '配置文件格式不正确';
+
+            // 验证哈希
+            const dataHash = await sha256(JSON.stringify(config.data));
+            if (dataHash !== config.hash) throw '配置文件哈希值不匹配';
+
+            // 导入配置
+            for (let item in config.data) {
+                localStorage.setItem(item, config.data[item]);
+            }
+            
+            showToast('配置文件导入成功，3 秒后自动刷新本页面。', 'success');
+            setTimeout(() => {
+                window.location.reload();
+            }, 3000);
+        } catch (error) {
+            const message = typeof error === 'string' ? error : '导入配置失败';
+            showToast(`从URL导入配置出错 (${message})`, 'error');
+        } finally {
+            hideLoading();
+            document.body.removeChild(modal);
+        }
+    });
+
+    // 点击模态框外部关闭
+    modal.addEventListener('click', (e) => {
+        if (e.target === modal) {
+            document.body.removeChild(modal);
+        }
+    });
+}
+
 // 配置文件导入功能
 async function importConfig() {
     showImportBox(async (file) => {
@@ -1119,16 +1293,132 @@ async function importConfig() {
     });
 }
 
+// 从URL导入配置
+async function importConfigFromUrl() {
+    // 创建模态框元素
+    let modal = document.getElementById('importUrlModal');
+    if (modal) {
+        document.body.removeChild(modal);
+    }
+
+    modal = document.createElement('div');
+    modal.id = 'importUrlModal';
+    modal.className = 'fixed inset-0 bg-black bg-opacity-75 flex items-center justify-center z-40';
+
+    modal.innerHTML = `
+        <div class="bg-[#191919] rounded-lg p-6 max-w-md w-full max-h-[90vh] overflow-y-auto relative">
+            <button id="closeUrlModal" class="absolute top-4 right-4 text-gray-400 hover:text-white text-xl">&times;</button>
+            
+            <h3 class="text-xl font-bold mb-4">从URL导入配置</h3>
+            
+            <div class="mb-4">
+                <input type="text" id="configUrl" placeholder="输入配置文件URL" 
+                       class="w-full px-3 py-2 bg-[#222] border border-[#333] rounded-lg text-white focus:outline-none focus:ring-1 focus:ring-blue-500">
+            </div>
+            
+            <div class="flex justify-end space-x-2">
+                <button id="confirmUrlImport" class="bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded">导入</button>
+                <button id="cancelUrlImport" class="bg-[#444] hover:bg-[#555] text-white px-4 py-2 rounded">取消</button>
+            </div>
+        </div>`;
+
+    document.body.appendChild(modal);
+
+    // 关闭按钮事件
+    document.getElementById('closeUrlModal').addEventListener('click', () => {
+        document.body.removeChild(modal);
+    });
+
+    // 取消按钮事件
+    document.getElementById('cancelUrlImport').addEventListener('click', () => {
+        document.body.removeChild(modal);
+    });
+
+    // 确认导入按钮事件
+    document.getElementById('confirmUrlImport').addEventListener('click', async () => {
+        const url = document.getElementById('configUrl').value.trim();
+        if (!url) {
+            showToast('请输入配置文件URL', 'warning');
+            return;
+        }
+
+        if (!url.startsWith('http://') && !url.startsWith('https://')) {
+            showToast('URL必须以http://或https://开头', 'warning');
+            return;
+        }
+
+        showLoading('正在从URL导入配置...');
+        
+        try {
+            // 获取配置文件
+            const response = await fetch(PROXY_URL + encodeURIComponent(url));
+            if (!response.ok) throw '获取配置文件失败';
+
+            const config = await response.json();
+            if (config.name !== 'LibreTV-Settings') throw '配置文件格式不正确';
+
+            // 验证哈希
+            const dataHash = await sha256(JSON.stringify(config.data));
+            if (dataHash !== config.hash) throw '配置文件哈希值不匹配';
+
+            // 导入配置
+            for (let item in config.data) {
+                localStorage.setItem(item, config.data[item]);
+            }
+            
+            showToast('配置文件导入成功，3 秒后自动刷新本页面。', 'success');
+            setTimeout(() => {
+                window.location.reload();
+            }, 3000);
+        } catch (error) {
+            const message = typeof error === 'string' ? error : '导入配置失败';
+            showToast(`从URL导入配置出错 (${message})`, 'error');
+        } finally {
+            hideLoading();
+            document.body.removeChild(modal);
+        }
+    });
+
+    // 点击模态框外部关闭
+    modal.addEventListener('click', (e) => {
+        if (e.target === modal) {
+            document.body.removeChild(modal);
+        }
+    });
+}
+
 // 配置文件导出功能
 async function exportConfig() {
     // 存储配置数据
     const config = {};
-
-    // 读取全部 localStorage 项
     const items = {};
-    for (let i = 0; i < localStorage.length; i++) {
-        const key = localStorage.key(i);
-        items[key] = localStorage.getItem(key);
+
+    const settingsToExport = [
+        'selectedAPIs',
+        'customAPIs',
+        'yellowFilterEnabled',
+        'adFilteringEnabled',
+        'doubanEnabled',
+        'hasInitializedDefaults'
+    ];
+
+    // 导出设置项
+    settingsToExport.forEach(key => {
+        const value = localStorage.getItem(key);
+        if (value !== null) {
+            items[key] = value;
+        }
+    });
+
+    // 导出历史记录
+    const viewingHistory = localStorage.getItem('viewingHistory');
+    if (viewingHistory) {
+        items['viewingHistory'] = viewingHistory;
+    }
+
+    const searchHistory = localStorage.getItem(SEARCH_HISTORY_KEY);
+    if (searchHistory) {
+        items[SEARCH_HISTORY_KEY] = searchHistory;
     }
 
     const times = Date.now().toString();
