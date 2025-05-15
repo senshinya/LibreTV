@@ -211,13 +211,100 @@
             </a>
         </div>
         <h2 id="videoTitle" class="text-xl font-semibold flex-1 text-center overflow-x-auto whitespace-nowrap truncate custom-title-scroll"></h2>
-        <a href="#" id="goBack" onclick="goBack()" class="px-4 py-2 bg-[#222] hover:bg-[#333] border border-[#333] rounded-lg transition-colors flex items-center min-w-0 home-btn">
+        <a href="#" id="goBack" onclick="goBack(event)" class="px-4 py-2 bg-[#222] hover:bg-[#333] border border-[#333] rounded-lg transition-colors flex items-center min-w-0 home-btn">
             <svg class="w-5 h-5 mr-1" viewBox="0 0 24 24" fill="#ffffff" xmlns="http://www.w3.org/2000/svg">
                 <path d="M5.25 11h15a1.5 1.5 0 1 1 0 3H5.25a1.5 1.5 0 0 1 0-3z"/>
                 <path d="M5.55 12 11.3 17.3a1.5 1.5 0 1 1-2.12 2.12L3 12l6.18-6.18a1.5 1.5 0 1 1 2.12 2.12L5.55 12z"/>
             </svg>
             <span class="home-btn-text">上一页</span>
         </a>
+        
+        <script>
+            // 改进返回功能
+            function goBack(e) {
+                e.preventDefault();
+                
+                // 1. 首先检查是否从搜索页面进入的播放器 (优先使用localStorage中的记录)
+                const cameFromSearch = localStorage.getItem('cameFromSearch') === 'true';
+                const searchPageUrl = localStorage.getItem('searchPageUrl');
+                
+                if (cameFromSearch && searchPageUrl) {
+                    console.log('返回搜索页面:', searchPageUrl);
+                    window.location.href = searchPageUrl;
+                    // 清除标记，避免下次返回仍然去搜索页
+                    localStorage.removeItem('cameFromSearch');
+                    return;
+                }
+                
+                // 继续原有的返回逻辑...
+                const referrer = document.referrer;
+                
+                // 检查referrer是否包含搜索参数
+                if (referrer && (referrer.includes('?s=') || referrer.includes('/s='))) {
+                    // 如果是从搜索页面来的，返回到搜索页面
+                    console.log('根据referrer返回搜索页面:', referrer);
+                    window.location.href = referrer;
+                    return;
+                }
+                
+                // 2. 尝试从URL参数获取返回地址
+                const urlParams = new URLSearchParams(window.location.search);
+                const returnUrl = urlParams.get('returnUrl');
+                
+                if (returnUrl) {
+                    // 存在明确的返回地址
+                    console.log('使用returnUrl参数返回:', returnUrl);
+                    window.location.href = returnUrl;
+                    return;
+                }
+                
+                // 3. 如果是在iframe中打开的，尝试关闭iframe
+                if (closeEmbeddedPlayer()) {
+                    console.log('关闭了嵌入式播放器');
+                    return;
+                }
+                
+                // 4. 其次尝试从localStorage中获取上一页URL
+                const lastPageUrl = localStorage.getItem('lastPageUrl');
+                if (lastPageUrl && lastPageUrl !== window.location.href) {
+                    console.log('从localStorage返回:', lastPageUrl);
+                    window.location.href = lastPageUrl;
+                    return;
+                }
+                
+                // 5. 检查referrer是否是有效的站内页面
+                if (referrer && 
+                    referrer !== window.location.href && 
+                    (referrer.includes(window.location.hostname) || referrer.startsWith('/'))) {
+                    console.log('返回referrer页面:', referrer);
+                    window.location.href = referrer;
+                    return;
+                }
+                
+                // 6. 都不满足时，返回首页
+                console.log('返回首页');
+                window.location.href = '/';
+            }
+            
+            // 页面加载时保存当前URL到localStorage，作为返回目标
+            window.addEventListener('load', function() {
+                // 保存前一页面URL
+                if (document.referrer && document.referrer !== window.location.href) {
+                    localStorage.setItem('lastPageUrl', document.referrer);
+                }
+                
+                // 提取当前URL中的重要参数，以便在需要时能够恢复当前页面
+                const urlParams = new URLSearchParams(window.location.search);
+                const videoId = urlParams.get('id');
+                const sourceCode = urlParams.get('source');
+                
+                if (videoId && sourceCode) {
+                    // 保存当前播放状态，以便其他页面可以返回
+                    localStorage.setItem('currentPlayingId', videoId);
+                    localStorage.setItem('currentPlayingSource', sourceCode);
+                }
+            });
+        </script>
     </header>
 
     <!-- 密码验证弹窗 -->
@@ -299,7 +386,7 @@
                     <!-- 复制链接按钮 -->
                     <button title="复制播放链接" onclick="copyLinks()" class="px-2 py-1 bg-[#222] hover:bg-[#333] border border-[#333] text-white rounded-lg transition">
                         <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 5H6a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2v-1M8 5a2 2 0 002 2h2a2 2 0 002-2M8 5a2 2 0 012-2h2a2 2 0 012 2m0 0h2a2 2 0 012 2v3m2 4H10m0 0l3-3m-3 3l3 3" />
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 5H6a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2v-1M8 5a2 2 0 012-2h2a2 2 0 002-2M8 5a2 2 0 012-2h2a2 2 0 012 2m0 0h2a2 2 0 012 2v3m2 4H10m0 0l3-3m-3 3l3 3" />
                         </svg>
                     </button>
                     
@@ -384,11 +471,29 @@
         
         // 注入服务器端环境变量 (将由服务器端替换)
         // PASSWORD 变量将在这里被服务器端注入
-        window.__ENV__.PASSWORD = "{{PASSWORD}}";
-
-        // 改进返回上一页功能
-        function goBack() {
-            // 检查是否是从搜索页面进入的播放器
+        window.__ENV__.PASSWORD = "{{PASSWORD}}";        // 改进返回上一页功能
+        function goBack(event) {
+            // 防止默认链接行为
+            if (event) event.preventDefault();
+            
+            // 1. 优先检查URL参数中的returnUrl
+            const urlParams = new URLSearchParams(window.location.search);
+            const returnUrl = urlParams.get('returnUrl');
+            
+            if (returnUrl) {
+                // 如果URL中有returnUrl参数，优先使用
+                window.location.href = decodeURIComponent(returnUrl);
+                return;
+            }
+            
+            // 2. 检查localStorage中保存的lastPageUrl
+            const lastPageUrl = localStorage.getItem('lastPageUrl');
+            if (lastPageUrl && lastPageUrl !== window.location.href) {
+                window.location.href = lastPageUrl;
+                return;
+            }
+            
+            // 3. 检查是否是从搜索页面进入的播放器
             const referrer = document.referrer;
             
             // 检查 referrer 是否包含搜索参数
@@ -398,7 +503,7 @@
                 return;
             }
             
-            // 如果是在iframe中打开的，尝试关闭iframe
+            // 4. 如果是在iframe中打开的，尝试关闭iframe
             if (window.self !== window.top) {
                 try {
                     // 尝试调用父窗口的关闭播放器函数
@@ -409,7 +514,13 @@
                 }
             }
             
-            // 默认行为：返回上一页
+            // 5. 无法确定上一页，则返回首页
+            if (!referrer || referrer === '') {
+                window.location.href = '/';
+                return;
+            }
+            
+            // 6. 以上都不满足，使用默认行为：返回上一页
             window.history.back();
         }
 
@@ -450,22 +561,6 @@
 
             initializePageContent();
         });
-
-        // 判断是否再框架中打开
-        function inIframe() {
-            try {
-                // 如果当前窗口的顶层窗口不是自身，说明在框架中
-                return window.self !== window.top;
-            } catch (e) {
-                // 跨域访问会抛出错误，此时也说明在框架中
-                return true;
-            }
-        }
-        // 如果播放器不是在框架中打开，则隐藏上一页按钮
-        if (!inIframe()) {
-            goBack = document.getElementById('goBack');
-            goBack.style.display = 'none';
-        }
 
         // 初始化页面内容
         function initializePageContent() {
@@ -1225,7 +1320,7 @@
             videoHasEnded = false; // 重置视频结束标志
             
             // 获取当前URL参数，保留source参数
-            const urlParams = new URLSearchParams(window.location.search);
+            const urlParams = new URL(window.location.href);
             const sourceName = urlParams.get('source') || '';
             const sourceCode = urlParams.get('source_code') || '';
             
@@ -1755,10 +1850,18 @@
                 : '<path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d=\"M15 11V7a3 3 0 00-6 0v4m-3 4h12v6H6v-6z\"/>';
         }
 
-        // 返回上一页
-        function goBack() {
-            const parentWindow = window.parent;
-            parentWindow.closeVideoPlayer();
+        // 支持在iframe中关闭播放器
+        function closeEmbeddedPlayer() {
+            try {
+                if (window.self !== window.top) {
+                    // 如果在iframe中，尝试调用父窗口的关闭方法
+                    window.parent.closeVideoPlayer && window.parent.closeVideoPlayer();
+                    return true;
+                }
+            } catch (e) {
+                console.error('尝试关闭嵌入式播放器失败:', e);
+            }
+            return false;
         }
     </script>
 </body>

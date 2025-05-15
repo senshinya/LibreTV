@@ -169,6 +169,22 @@ function fillAndSearch(title) {
     if (input) {
         input.value = safeTitle;
         search(); // 使用已有的search函数执行搜索
+        
+        // 同时更新浏览器URL，使其反映当前的搜索状态
+        try {
+            // 使用URI编码确保特殊字符能够正确显示
+            const encodedQuery = encodeURIComponent(safeTitle);
+            // 使用HTML5 History API更新URL，不刷新页面
+            window.history.pushState(
+                { search: safeTitle }, 
+                `搜索: ${safeTitle} - LibreTV`, 
+                `/s=${encodedQuery}`
+            );
+            // 更新页面标题
+            document.title = `搜索: ${safeTitle} - LibreTV`;
+        } catch (e) {
+            console.error('更新浏览器历史失败:', e);
+        }
     }
 }
 
@@ -213,6 +229,22 @@ async function fillAndSearchWithDouban(title) {
     if (input) {
         input.value = safeTitle;
         await search(); // 使用已有的search函数执行搜索
+        
+        // 更新浏览器URL，使其反映当前的搜索状态
+        try {
+            // 使用URI编码确保特殊字符能够正确显示
+            const encodedQuery = encodeURIComponent(safeTitle);
+            // 使用HTML5 History API更新URL，不刷新页面
+            window.history.pushState(
+                { search: safeTitle }, 
+                `搜索: ${safeTitle} - LibreTV`, 
+                `/s=${encodedQuery}`
+            );
+            // 更新页面标题
+            document.title = `搜索: ${safeTitle} - LibreTV`;
+        } catch (e) {
+            console.error('更新浏览器历史失败:', e);
+        }
 
         if (window.innerWidth <= 768) {
           window.scrollTo({

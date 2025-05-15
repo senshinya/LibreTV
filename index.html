@@ -454,7 +454,13 @@
     <script>
         // 在页面加载完成后检查URL中的搜索参数
         document.addEventListener('DOMContentLoaded', function() {
-            // 首先检查页面路径中的搜索参数 (格式: /s=keyword)
+            // 首先检查是否是播放URL格式 (/watch 开头的路径)
+            if (window.location.pathname.startsWith('/watch')) {
+                // 播放URL，不做额外处理，watch.html会处理重定向
+                return;
+            }
+            
+            // 检查页面路径中的搜索参数 (格式: /s=keyword)
             const path = window.location.pathname;
             const searchPrefix = '/s=';
             
@@ -492,6 +498,16 @@
                 // 执行搜索
                 setTimeout(() => {
                     search();
+                    // 更新URL为规范格式
+                    try {
+                        window.history.replaceState(
+                            { search: searchQuery }, 
+                            `搜索: ${searchQuery} - LibreTV`, 
+                            `/s=${encodeURIComponent(searchQuery)}`
+                        );
+                    } catch (e) {
+                        console.error('更新浏览器历史失败:', e);
+                    }
                 }, 300);
             }
         });
