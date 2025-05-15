@@ -12,6 +12,12 @@
   to = "/.netlify/functions/proxy/:splat" # 将路径参数传递给函数
   status = 200 # 重要：这是代理，不是重定向
 
+# 处理搜索路径格式 /s=*
+[[redirects]]
+  from = "/s=*"
+  to = "/index.html"
+  status = 200
+
 # （可选）为其他静态文件设置缓存头等
 # [[headers]]
 #   for = "/*"

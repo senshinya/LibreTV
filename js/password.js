@@ -85,6 +85,9 @@ async function sha256(message) {
 function showPasswordModal() {
     const passwordModal = document.getElementById('passwordModal');
     if (passwordModal) {
+        // 防止出现豆瓣区域滚动条
+        document.getElementById('doubanArea').classList.add('hidden');
+
         passwordModal.style.display = 'flex';
         
         // 确保输入框获取焦点
@@ -104,6 +107,12 @@ function hidePasswordModal() {
     const passwordModal = document.getElementById('passwordModal');
     if (passwordModal) {
         passwordModal.style.display = 'none';
+
+        // 如果启用豆瓣区域则显示豆瓣区域
+        if (localStorage.getItem('doubanEnabled') === 'true') {
+            document.getElementById('doubanArea').classList.remove('hidden');
+            initDouban();
+        }
     }
 }
 

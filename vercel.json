@@ -3,6 +3,10 @@
     {
       "source": "/proxy/:path*",
       "destination": "/api/proxy/:path*"
+    },
+    {
+      "source": "/s=:query",
+      "destination": "/index.html"
     }
   ]
 }
