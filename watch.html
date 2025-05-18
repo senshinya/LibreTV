@@ -2,60 +2,25 @@
 <html lang="zh">
 <head>
     <meta charset="UTF-8">
-    <meta http-equiv="refresh" content="0; url=player.html">
-    <title>重定向到播放器</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta http-equiv="refresh" content="3; url=player.html">
+    <title>正在跳转到播放器...</title>
     <link rel="manifest" href="manifest.json">
-    <script>
-        // 获取当前URL的参数，并将它们传递给player.html
-        window.onload = function() {
-            // 获取当前URL的查询参数
-            const currentParams = new URLSearchParams(window.location.search);
-            
-            // 创建player.html的URL
-            let playerUrl = "player.html";
-            
-            // 如果有查询参数，添加到player.html的URL
-            if (currentParams.toString()) {
-                playerUrl += "?" + currentParams.toString();
-            }
-            
-            // 获取来源URL (如果存在)
-            const referrer = document.referrer;
-            
-            // 获取当前URL中的返回URL参数（如果有）
-            const backUrl = currentParams.get('back');
-            
-            // 确定返回URL的优先级：1. 指定的back参数 2. referrer 3. 搜索页面
-            let returnUrl = '';
-            if (backUrl) {
-                // 有显式指定的返回URL
-                returnUrl = decodeURIComponent(backUrl);
-            } else if (referrer && (referrer.includes('/s=') || referrer.includes('?s='))) {
-                // 来源是搜索页面
-                returnUrl = referrer;
-            } else if (referrer && referrer.trim() !== '') {
-                // 如果有referrer但不是搜索页，也使用它
-                returnUrl = referrer;
-            } else {
-                // 默认回到首页
-                returnUrl = '/';
-            }
-            
-            // 将返回URL添加到player.html的参数中
-            playerUrl += playerUrl.includes('?') ? '&' : '?';
-            playerUrl += 'returnUrl=' + encodeURIComponent(returnUrl);
-            
-            // 同时保存在localStorage中，作为备用
-            localStorage.setItem('lastPageUrl', returnUrl);
-            
-            // 重定向到播放器页面
-            window.location.href = playerUrl;
-        };
-    </script>
+    <link rel="stylesheet" href="css/watch.css">
+    <script src="js/watch.js"></script>
 </head>
 <body>
-    <div style="text-align: center; padding-top: 100px;">
-        正在重定向到播放器...
+    <div class="redirect-container">
+        <div class="logo-container">
+            <svg class="logo-icon" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 10l4.553-2.276A1 1 0 0121 8.618v6.764a1 1 0 01-1.447.894L15 14M5 18h8a2 2 0 002-2V8a2 2 0 00-2-2H5a2 2 0 00-2 2v8a2 2 0 002 2z"></path>
+            </svg>
+            <h1 class="logo-text">LibreTV</h1>
+        </div>
+        <div class="loading-animation"></div>
+        <div class="redirect-message">正在加载播放器...</div>
+        <div id="redirect-status">准备视频数据中，请稍候...</div>
+        <p class="redirect-hint">如果页面没有自动跳转，请<a href="player.html" id="manual-redirect">点击这里</a></p>
     </div>
 </body>
 </html>

@@ -15,6 +15,7 @@
     
     <script src="libs/tailwindcss.min.js"></script>
     <link rel="stylesheet" href="css/styles.css">
+    <link rel="stylesheet" href="css/index.css">
 </head>
 <body class="page-bg text-white">
     <!-- 将历史记录按钮移到左上角，并缩小尺寸 -->
@@ -210,7 +211,18 @@
                                class="flex-1 bg-[#111] border-y border-[#333] text-white px-6 py-0 focus:outline-none transition-colors" 
                                placeholder="搜索你喜欢的视频..." 
                                autocomplete="off"
-                               aria-label="视频搜索框">
+                               aria-label="视频搜索框"
+                               oninput="toggleClearButton()">
+                        <!-- 清空按钮 -->
+                        <button id="clearSearchInput" 
+                                class="flex pr-2 bg-[#111] border-y border-[#333] items-center justify-center text-gray-400 hover:text-white hidden"
+                                onclick="clearSearchInput()"
+                                aria-label="清空搜索框"
+                                title="清空搜索框">
+                            <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path>
+                            </svg>
+                        </button>
                         <!-- 搜索按钮 -->
                         <button onclick="search()" 
                                 class="w-20 sm:w-24 flex items-center justify-center bg-white text-black font-medium hover:bg-gray-200 transition-colors" 
@@ -406,13 +418,7 @@
     <script src="js/app.js"></script>
 
     <!-- PWA 注册 -->
-    <script>
-        if ('serviceWorker' in navigator) {
-            window.addEventListener('load', () => {
-                navigator.serviceWorker.register('/service-worker.js');
-            });
-        }
-    </script>
+    <script src="js/pwa-register.js"></script>
 
     <!-- 环境变量注入脚本 -->
     <script>
@@ -427,90 +433,7 @@
     <!-- 版本检测脚本 -->
     <script src="js/version-check.js"></script>
 
-    <!-- 弹窗显示脚本 -->
-    <script>
-        // 在页面加载完成后检查用户是否首次访问
-        document.addEventListener('DOMContentLoaded', function() {
-            // 检查用户是否已经看过声明
-            const hasSeenDisclaimer = localStorage.getItem('hasSeenDisclaimer');
-            
-            if (!hasSeenDisclaimer) {
-                // 显示弹窗
-                const disclaimerModal = document.getElementById('disclaimerModal');
-                disclaimerModal.style.display = 'flex';
-                
-                // 添加接受按钮事件
-                document.getElementById('acceptDisclaimerBtn').addEventListener('click', function() {
-                    // 保存用户已观看声明的状态
-                    localStorage.setItem('hasSeenDisclaimer', 'true');
-                    // 隐藏弹窗
-                    disclaimerModal.style.display = 'none';
-                });
-            }
-        });
-    </script>
-
-    <!-- 添加URL搜索参数处理脚本 -->
-    <script>
-        // 在页面加载完成后检查URL中的搜索参数
-        document.addEventListener('DOMContentLoaded', function() {
-            // 首先检查是否是播放URL格式 (/watch 开头的路径)
-            if (window.location.pathname.startsWith('/watch')) {
-                // 播放URL，不做额外处理，watch.html会处理重定向
-                return;
-            }
-            
-            // 检查页面路径中的搜索参数 (格式: /s=keyword)
-            const path = window.location.pathname;
-            const searchPrefix = '/s=';
-            
-            if (path.startsWith(searchPrefix)) {
-                // 提取搜索关键词
-                const keyword = decodeURIComponent(path.substring(searchPrefix.length));
-                if (keyword) {
-                    // 设置搜索框的值
-                    document.getElementById('searchInput').value = keyword;
-                    // 执行搜索
-                    setTimeout(() => {
-                        // 使用setTimeout确保其他DOM加载和初始化完成
-                        search();
-                        // 更新浏览器历史，不改变URL (保持搜索参数在地址栏)
-                        try {
-                            window.history.replaceState(
-                                { search: keyword }, 
-                                `搜索: ${keyword} - LibreTV`, 
-                                window.location.href
-                            );
-                        } catch (e) {
-                            console.error('更新浏览器历史失败:', e);
-                        }
-                    }, 300);
-                }
-            }
-            
-            // 也检查查询字符串中的搜索参数 (格式: ?s=keyword)
-            const urlParams = new URLSearchParams(window.location.search);
-            const searchQuery = urlParams.get('s');
-            
-            if (searchQuery) {
-                // 设置搜索框的值
-                document.getElementById('searchInput').value = searchQuery;
-                // 执行搜索
-                setTimeout(() => {
-                    search();
-                    // 更新URL为规范格式
-                    try {
-                        window.history.replaceState(
-                            { search: searchQuery }, 
-                            `搜索: ${searchQuery} - LibreTV`, 
-                            `/s=${encodeURIComponent(searchQuery)}`
-                        );
-                    } catch (e) {
-                        console.error('更新浏览器历史失败:', e);
-                    }
-                }, 300);
-            }
-        });
-    </script>
+    <!-- 添加弹窗和URL搜索参数处理脚本 -->
+    <script src="js/index-page.js"></script>
 </body>
 </html>

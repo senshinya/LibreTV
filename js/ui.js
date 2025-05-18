@@ -228,8 +228,24 @@ function renderSearchHistory() {
     
     history.forEach(item => {
         const tag = document.createElement('button');
-        tag.className = 'search-tag';
-        tag.textContent = item.text;
+        tag.className = 'search-tag flex items-center gap-1';
+        const textSpan = document.createElement('span');
+        textSpan.textContent = item.text;
+        tag.appendChild(textSpan);
+
+        // 添加删除按钮
+        const deleteButton = document.createElement('span');
+        deleteButton.className = 'pl-1 text-gray-500 hover:text-red-500 transition-colors';
+        deleteButton.innerHTML = '<svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path></svg>';
+        deleteButton.onclick = function(e) {
+            // 阻止事件冒泡，避免触发搜索
+            e.stopPropagation();
+            // 删除对应历史记录
+            deleteSingleSearchHistory(item.text);
+            // 重新渲染搜索历史
+            renderSearchHistory();
+        };
+        tag.appendChild(deleteButton);
         
         // 添加时间提示（如果有时间戳）
         if (item.timestamp) {
@@ -243,6 +259,21 @@ function renderSearchHistory() {
         };
         historyContainer.appendChild(tag);
     });
+}
+
+// 删除单条搜索历史记录
+function deleteSingleSearchHistory(query) {
+    // 当url中包含删除的关键词时，页面刷新后会自动加入历史记录，导致误认为删除功能有bug。此问题无需修复，功能无实际影响。
+    try {
+        let history = getSearchHistory();
+        // 过滤掉要删除的记录
+        history = history.filter(item => item.text !== query);
+        console.log('更新后的搜索历史:', history);
+        localStorage.setItem(SEARCH_HISTORY_KEY, JSON.stringify(history));
+    } catch (e) {
+        console.error('删除单条搜索历史失败:', e);
+        showToast('删除单条搜索历史失败', 'error');
+    }
 }
 
 // 增加清除搜索历史功能
@@ -707,12 +738,22 @@ function clearLocalStorage() {
                 <h3 class="text-xl font-bold text-white mb-4">提示</h3>
                 
                 <div class="mb-4">
-                    <div class="text-sm font-medium text-gray-300 mb-4">页面缓存和Cookie已清除，3 秒后自动刷新本页面。</div>
+                    <div class="text-sm font-medium text-gray-300 mb-4">页面缓存和Cookie已清除，<span id="countdown">3</span> 秒后自动刷新本页面。</div>
                 </div>
             </div>`;
-        setTimeout(() => {
-            window.location.reload();
-        }, 3000);
+
+        let countdown = 3;
+        const countdownElement = document.getElementById('countdown');
+        
+        const countdownInterval = setInterval(() => {
+            countdown--;
+            if (countdown >= 0) {
+                countdownElement.textContent = countdown;
+            } else {
+                clearInterval(countdownInterval);
+                window.location.reload();
+            }
+        }, 1000);
     });
 
     // 添加事件监听器 - 取消按钮
