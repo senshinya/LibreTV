@@ -893,28 +893,25 @@ function playEpisode(index) {
     currentEpisodeIndex = index;
     videoHasEnded = false; // 重置视频结束标志
     
-    // 获取当前URL参数，保留source参数
-    const urlParams = new URL(window.location.href);
-    const sourceName = urlParams.searchParams.get('source') || ''; // Use searchParams
-    const sourceCode = urlParams.searchParams.get('source_code') || ''; // Use searchParams
+    // 获取当前URL的所有参数
+    const currentUrl = new URL(window.location.href);
+    const urlParams = currentUrl.searchParams;
+    const sourceName = urlParams.get('source') || ''; 
+    const sourceCode = urlParams.get('source_code') || '';
+    const videoId = urlParams.get('id') || '';
+    const returnUrl = urlParams.get('returnUrl') || '';
     
-    // 更新URL，不刷新页面，保留source参数
-    const newUrl = new URL(window.location.href);
+    // 构建新的URL，保持查询参数但更新index和url
+    const newUrl = new URL(window.location.origin + window.location.pathname);
+    // 保留所有原始参数
+    for(const [key, value] of urlParams.entries()) {
+        newUrl.searchParams.set(key, value);
+    }
+    // 更新需要变更的参数
     newUrl.searchParams.set('index', index);
     newUrl.searchParams.set('url', url);
-    if (sourceName) {
-        newUrl.searchParams.set('source', sourceName);
-    }
-    if (sourceCode) {
-        newUrl.searchParams.set('source_code', sourceCode);
-    }
     
-    // 保留referrer参数，如果存在
-    const referrer = urlParams.searchParams.get('referrer'); // Use searchParams
-    if (referrer) {
-        newUrl.searchParams.set('referrer', referrer);
-    }
-    
+    // 使用replaceState更新URL，这样不会增加浏览历史记录
     window.history.replaceState({}, '', newUrl);
     
     // 更新播放器

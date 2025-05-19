@@ -31,7 +31,7 @@ window.onload = function() {
         currentStatus++;
     }, 1000);
     
-    // 如果有查询参数，添加到player.html的URL
+    // 确保保留所有原始参数，但可能会覆盖一些参数
     if (currentParams.toString()) {
         playerUrl += "?" + currentParams.toString();
     }
@@ -59,8 +59,12 @@ window.onload = function() {
     }
     
     // 将返回URL添加到player.html的参数中
-    const separator = playerUrl.includes('?') ? '&' : '?';
-    playerUrl += separator + 'returnUrl=' + encodeURIComponent(returnUrl);
+    // 检查playerUrl是否已有returnUrl参数
+    const playerUrlObj = new URL(playerUrl, window.location.origin);
+    if (!playerUrlObj.searchParams.has('returnUrl')) {
+        const separator = playerUrl.includes('?') ? '&' : '?';
+        playerUrl += separator + 'returnUrl=' + encodeURIComponent(returnUrl);
+    }
     
     // 同时保存在localStorage中，作为备用
     localStorage.setItem('lastPageUrl', returnUrl);
@@ -70,6 +74,13 @@ window.onload = function() {
         localStorage.setItem('cameFromSearch', 'true');
         localStorage.setItem('searchPageUrl', returnUrl);
     }
+    
+    // 确保videoId和sourceCode等重要参数被保留
+    // 这是调试代码，可以帮助识别问题，可选择保留或删除
+    console.log('传递给player.html的参数:');
+    (new URL(playerUrl, window.location.origin)).searchParams.forEach((value, key) => {
+        console.log(`- ${key}: ${value}`);
+    });
     
     // 更新手动重定向链接
     if (manualRedirect) {

@@ -1051,8 +1051,19 @@ function playVideo(url, vod_name, sourceCode, episodeIndex = 0) {
     // 获取当前路径作为返回页面
     let currentPath = window.location.href;
     
+    // 如果有ID参数，也传递过去
+    let videoId = '';
+    try {
+        // 尝试从URL中提取id参数（如果存在）
+        const urlObj = new URL(url);
+        videoId = urlObj.searchParams.get('id') || '';
+    } catch (e) {
+        // 忽略错误
+        console.log('解析视频URL获取ID失败:', e);
+    }
+    
     // 构建播放页面URL，使用watch.html作为中间跳转页
-    let watchUrl = `watch.html?id=${currentEpisodes[episodeIndex].id || ''}&source=${sourceCode || ''}&url=${encodeURIComponent(url)}&index=${episodeIndex}&title=${encodeURIComponent(vod_name || '')}`;
+    let watchUrl = `watch.html?id=${videoId}&source=${sourceCode || ''}&url=${encodeURIComponent(url)}&index=${episodeIndex}&title=${encodeURIComponent(vod_name || '')}`;
     
     // 添加返回URL参数
     watchUrl += `&back=${encodeURIComponent(currentPath)}`;

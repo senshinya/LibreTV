@@ -531,24 +531,46 @@ function playFromHistory(url, title, episodeIndex, playbackPosition = 0) {
         }
         localStorage.setItem('lastPageUrl', currentPath);
         
-        // 构造带播放进度参数的URL
-        const positionParam = `&position=${Math.floor(playbackPosition || 0)}`;
+        // 构造播放器URL
+        let playerUrl;
         
-        if (url.includes('?')) {
+        // 检查URL是否是嵌套的player.html链接
+        if (url.includes('player.html') || url.includes('watch.html')) {
+            console.log('检测到嵌套播放链接，解析真实URL');
+            try {
+                const nestedUrl = new URL(url, window.location.origin);
+                const nestedParams = nestedUrl.searchParams;
+                const realVideoUrl = nestedParams.get('url') || url;
+                
+                // 构造更干净的播放链接
+                playerUrl = `player.html?url=${encodeURIComponent(realVideoUrl)}&title=${encodeURIComponent(title)}&index=${episodeIndex}&position=${Math.floor(playbackPosition || 0)}&returnUrl=${encodeURIComponent(currentPath)}`;
+                
+                // 如果有source和source_code，也添加
+                const source = nestedParams.get('source');
+                const sourceCode = nestedParams.get('source_code');
+                if (source) playerUrl += `&source=${encodeURIComponent(source)}`;
+                if (sourceCode) playerUrl += `&source_code=${encodeURIComponent(sourceCode)}`;
+            } catch (e) {
+                console.error('解析嵌套URL出错:', e);
+                // fallback到简单URL
+                playerUrl = `player.html?url=${encodeURIComponent(url)}&title=${encodeURIComponent(title)}&index=${episodeIndex}&position=${Math.floor(playbackPosition || 0)}&returnUrl=${encodeURIComponent(currentPath)}`;
+            }
+        } else if (url.includes('?')) {
             // URL已有参数，添加索引和位置参数
-            const playUrl = new URL(url);
+            const playUrl = new URL(url, window.location.origin);
             if (!playUrl.searchParams.has('index') && episodeIndex > 0) {
                 playUrl.searchParams.set('index', episodeIndex);
             }
             playUrl.searchParams.set('position', Math.floor(playbackPosition || 0).toString());
             // 添加返回URL
             playUrl.searchParams.set('returnUrl', encodeURIComponent(currentPath));
-            showVideoPlayer(playUrl.toString());
+            playerUrl = playUrl.toString();
         } else {
             // 原始URL，构造player页面链接
-            const playerUrl = `player.html?url=${encodeURIComponent(url)}&title=${encodeURIComponent(title)}&index=${episodeIndex}&position=${Math.floor(playbackPosition || 0)}&returnUrl=${encodeURIComponent(currentPath)}`;
-            showVideoPlayer(playerUrl);
+            playerUrl = `player.html?url=${encodeURIComponent(url)}&title=${encodeURIComponent(title)}&index=${episodeIndex}&position=${Math.floor(playbackPosition || 0)}&returnUrl=${encodeURIComponent(currentPath)}`;
         }
+
+        showVideoPlayer(playerUrl);
     } catch (e) {
         console.error('从历史记录播放失败:', e);
         // 回退到原始简单URL
