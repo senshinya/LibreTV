@@ -913,7 +913,7 @@ function playEpisode(index) {
     // 更新需要变更的参数
     newUrl.searchParams.set('index', index);
     newUrl.searchParams.set('url', url);
-    // 新增：移除position参数，确保不会从记录的位置开始播放
+    // 移除position参数，确保不会从记录的位置开始播放
     newUrl.searchParams.delete('position');
     
     // 使用replaceState更新URL，这样不会增加浏览历史记录
