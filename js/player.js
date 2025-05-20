@@ -893,6 +893,9 @@ function playEpisode(index) {
     currentEpisodeIndex = index;
     videoHasEnded = false; // 重置视频结束标志
     
+    // 新增：清除之前的播放位置记录，确保切换选集后从头开始播放
+    clearVideoProgress();
+    
     // 获取当前URL的所有参数
     const currentUrl = new URL(window.location.href);
     const urlParams = currentUrl.searchParams;
@@ -910,6 +913,8 @@ function playEpisode(index) {
     // 更新需要变更的参数
     newUrl.searchParams.set('index', index);
     newUrl.searchParams.set('url', url);
+    // 新增：移除position参数，确保不会从记录的位置开始播放
+    newUrl.searchParams.delete('position');
     
     // 使用replaceState更新URL，这样不会增加浏览历史记录
     window.history.replaceState({}, '', newUrl);
