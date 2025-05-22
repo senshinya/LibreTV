@@ -134,7 +134,6 @@
         pointer-events: auto !important;
         background: #111;
       }
-      #homeButton { pointer-events: auto !important; }
       body { padding-top: 72px; }
     </style>
     
@@ -338,59 +337,6 @@
         // 注入服务器端环境变量 (将由服务器端替换)
         // PASSWORD 变量将在这里被服务器端注入
         window.__ENV__.PASSWORD = "{{PASSWORD}}";
-
-        // 直接导航到首页的备份方法，强制清理和导航
-        function directNavigateHome() {
-            console.log('Direct home navigation triggered');
-            try {
-                // 停止所有音频和视频
-                document.querySelectorAll('video, audio').forEach(media => {
-                    try {
-                        media.pause();
-                        media.muted = true;
-                        media.src = '';
-                    } catch (e) {}
-                });
-                
-                // 关闭播放器
-                if (window.dp && typeof window.dp.destroy === 'function') {
-                    try { window.dp.destroy(true); } catch(e) {}
-                }
-                
-                // 清除事件处理程序
-                window.onbeforeunload = null;
-                
-                // 立即导航
-                setTimeout(() => { window.location.replace('/'); }, 0);
-            } catch(e) {
-                // 如果出错，直接导航
-                window.location.href = '/';
-            }
-            return false; // 阻止默认点击事件
-        }
-        
-        // 页面加载完成后初始化事件监听
-        document.addEventListener('DOMContentLoaded', function() {
-            // 使用事件委托处理首页按钮点击
-            document.body.addEventListener('click', function(event) {
-                const homeButton = event.target.closest('#homeButton');
-                if (homeButton) {
-                    event.preventDefault();
-                    event.stopPropagation();
-                    // 多重兜底跳转
-                    try {
-                            window.location.href = '/';
-                    } catch (e) {
-                        try {
-                            window.location.replace('/');
-                        } catch (e2) {
-                            window.location.assign('/');
-                    }
-                    }
-                    return false;
-                }
-            });
-        });
     </script>
 </body>
 </html>
