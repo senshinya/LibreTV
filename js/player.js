@@ -316,6 +316,15 @@ function handleKeyboardShortcuts(e) {
             e.preventDefault();
         }
     }
+
+    // f 键 = 切换全屏
+    if (e.key === 'f' || e.key === 'F') {
+        if (art && art.fullScreen && typeof art.fullScreen.toggle === 'function') {
+            art.fullScreen.toggle();
+            showShortcutHint('切换全屏', 'fullscreen');
+            e.preventDefault();
+        }
+    }
 }
 
 // 显示快捷键提示
@@ -334,8 +343,10 @@ function showShortcutHint(text, direction) {
 
     if (direction === 'left') {
         iconElement.innerHTML = '<path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7"></path>';
-    } else {
+    } else if (direction === 'right') {
         iconElement.innerHTML = '<path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"></path>';
+    } else if (direction === 'fullscreen') {
+        iconElement.innerHTML = '<path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 8V4m0 0h4M4 4l5 5m11-1V4m0 0h-4m4 0l-5 5M4 16v4m0 0h4m-4 0l5-5m11 5v-4m0 4h-4m4 0l-5-5"></path>';
     }
 
     // 显示提示
@@ -559,7 +570,7 @@ function initPlayer(videoUrl) {
         }
     });
 
-    art.on('video:loadmetadata', function() {
+    art.on('video:loadedmetadata', function() {
         document.getElementById('loading').style.display = 'none';
         videoHasEnded = false; // 视频加载时重置结束标志
         // 优先使用URL传递的position参数
