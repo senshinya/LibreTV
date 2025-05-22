@@ -333,14 +333,11 @@ function initArtPlayer() {
         const storedRate = parseFloat(localStorage.getItem(rateKey) || '1');
         const playbackRate = (storedRate > 0 && storedRate < 5) ? storedRate : 1;
 
-        // Determine if we need to use the m3u8 custom type
-        const type = videoUrl.endsWith('.m3u8') ? 'customHls' : 'auto';
-
         // Create new ArtPlayer instance
         art = new Artplayer({
             container: '#player',
             url: videoUrl,
-            type: type,
+            type: 'm3u8',
             title: videoTitle,
             poster: posterUrl,
             posterScaling: 'contain',
@@ -372,10 +369,12 @@ function initArtPlayer() {
                 crossOrigin: 'anonymous',
             },
             customType: {
-                customHls: function (video, url) {
+                m3u8: function (video, url) {
                     if (Hls.isSupported()) {
                         const hls = new Hls({
                             maxBufferLength: 60,
+                            enableWorker: true,
+                            debug: false,
                             maxMaxBufferLength: 90,
                             maxBufferSize: 100 * 1000 * 1000,
                             maxBufferHole: 1,
@@ -738,13 +737,7 @@ function initPlayer(videoUrl, sourceCode) {
             currentEpisode: currentEpisodeIndex,
             title: currentVideoTitle,
             url: videoUrl,
-            poster: '',
-            // 添加自定义HLS配置
-            customHLS: {
-                enableWorker: true,
-                debug: false,
-                // 其他HLS.js配置...
-            }
+            poster: ''
         };
 
         // 使用ArtPlayer API加载视频
