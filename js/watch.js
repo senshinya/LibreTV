@@ -85,8 +85,6 @@ window.onload = function() {
     if (manualRedirect) {
         manualRedirect.href = finalPlayerUrl;
     }
-
-    console.log('即将重定向到:', finalPlayerUrl);
     
     // 重定向到播放器页面
     setTimeout(() => {

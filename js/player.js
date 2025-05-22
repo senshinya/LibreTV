@@ -124,6 +124,7 @@ document.addEventListener('passwordVerified', () => {
 
 // 初始化页面内容
 function initializePageContent() {
+    console.log(window.location.href);
     // 解析URL参数
     const urlParams = new URLSearchParams(window.location.search);
     let videoUrl = urlParams.get('url');
