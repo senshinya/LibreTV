@@ -10,7 +10,7 @@
     "apple-mobile-web-app-status-bar-style": "black",
     "icons": [
       {
-        "src": "./image/retrotv_5520.png",
+        "src": "image/logo-black.png",
         "sizes": "512x512",
         "type": "image/png"
       }
