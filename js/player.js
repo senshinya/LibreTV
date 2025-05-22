@@ -824,25 +824,29 @@ function playEpisode(index) {
     
     // 准备切换剧集的URL
     const url = currentEpisodes[index];
+    
+    // 更新URL参数（不刷新页面）
     const currentUrl = new URL(window.location.href);
-    const urlParams = currentUrl.searchParams;
+    currentUrl.searchParams.set('index', index);
+    currentUrl.searchParams.set('url', url);
+    currentUrl.searchParams.delete('position');
+    window.history.replaceState({}, '', currentUrl.toString());
     
-    // 构建新的URL参数
-    const newUrl = new URL(window.location.origin + window.location.pathname);
-    // 保留所有原始参数
-    for(const [key, value] of urlParams.entries()) {
-        newUrl.searchParams.set(key, value);
+    // 更新当前剧集索引
+    currentEpisodeIndex = index;
+    
+    // 使用art.switch切换视频源
+    if (art) {
+        // 使用art.switch切换视频URL
+        art.switch = url;
+        
+        // 更新播放器UI状态
+        updateButtonStates();
+        highlightCurrentEpisode();
+    } else {
+        console.error('播放器实例不存在');
+        showToast('播放器实例不存在，无法切换剧集', 'error');
     }
-    
-    // 更新需要变更的参数
-    newUrl.searchParams.set('index', index);
-    newUrl.searchParams.set('url', url);
-    // 确保不会从记录的位置开始播放
-    newUrl.searchParams.delete('position');
-    
-    // 使用页面重载方式切换剧集，这将完全清理所有资源
-    window.location.href = newUrl.toString();
-    return;
 }
 
 // 播放上一集
