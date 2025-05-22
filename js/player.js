@@ -660,9 +660,7 @@ function initPlayer(videoUrl) {
         // 绑定双击事件到视频容器
         if (art.video) {
             art.video.addEventListener('dblclick', () => {
-                if (art.fullScreen && typeof art.fullScreen.toggle === 'function') {
-                    art.fullScreen.toggle();
-                }
+                art.fullscreen = !art.fullscreen;
             });
         }
     });
