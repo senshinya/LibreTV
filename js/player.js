@@ -919,6 +919,10 @@ function playEpisode(index) {
         initPlayer(url, sourceCode);
     }
 
+    if (art && autoplayEnabled) {
+        art.play();
+    }
+
     // 更新UI
     updateEpisodeInfo();
     updateButtonStates();
