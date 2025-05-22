@@ -3,8 +3,8 @@ window.onload = function() {
     // 获取当前URL的查询参数
     const currentParams = new URLSearchParams(window.location.search);
     
-    // 创建player.html的URL
-    let playerUrl = "player.html";
+    // 创建player.html的URL对象
+    const playerUrlObj = new URL("player.html", window.location.origin);
     
     // 更新状态文本
     const statusElement = document.getElementById('redirect-status');
@@ -31,10 +31,10 @@ window.onload = function() {
         currentStatus++;
     }, 1000);
     
-    // 确保保留所有原始参数，但可能会覆盖一些参数
-    if (currentParams.toString()) {
-        playerUrl += "?" + currentParams.toString();
-    }
+    // 确保保留所有原始参数
+    currentParams.forEach((value, key) => {
+        playerUrlObj.searchParams.set(key, value);
+    });
     
     // 获取来源URL (如果存在)
     const referrer = document.referrer;
@@ -59,11 +59,8 @@ window.onload = function() {
     }
     
     // 将返回URL添加到player.html的参数中
-    // 检查playerUrl是否已有returnUrl参数
-    const playerUrlObj = new URL(playerUrl, window.location.origin);
     if (!playerUrlObj.searchParams.has('returnUrl')) {
-        const separator = playerUrl.includes('?') ? '&' : '?';
-        playerUrl += separator + 'returnUrl=' + encodeURIComponent(returnUrl);
+        playerUrlObj.searchParams.set('returnUrl', encodeURIComponent(returnUrl));
     }
     
     // 同时保存在localStorage中，作为备用
@@ -75,21 +72,23 @@ window.onload = function() {
         localStorage.setItem('searchPageUrl', returnUrl);
     }
     
-    // 确保videoId和sourceCode等重要参数被保留
     // 这是调试代码，可以帮助识别问题，可选择保留或删除
     console.log('传递给player.html的参数:');
-    (new URL(playerUrl, window.location.origin)).searchParams.forEach((value, key) => {
+    playerUrlObj.searchParams.forEach((value, key) => {
         console.log(`- ${key}: ${value}`);
     });
     
+    // 获取最终的URL字符串
+    const finalPlayerUrl = playerUrlObj.toString();
+    
     // 更新手动重定向链接
     if (manualRedirect) {
-        manualRedirect.href = playerUrl;
+        manualRedirect.href = finalPlayerUrl;
     }
     
     // 重定向到播放器页面
     setTimeout(() => {
         clearInterval(statusInterval);
-        window.location.href = playerUrl;
+        window.location.href = finalPlayerUrl;
     }, 2800); // 稍微早于meta refresh的时间，确保我们的JS控制重定向
 };

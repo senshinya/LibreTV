@@ -239,11 +239,7 @@ function initializePageContent() {
 
     // 初始化播放器
     if (videoUrl) {
-        try {
-            initPlayer(videoUrl);
-        } catch (error) {
-            console.log(error);
-        }
+        initPlayer(videoUrl);
     } else {
         showError('无效的视频链接');
     }
