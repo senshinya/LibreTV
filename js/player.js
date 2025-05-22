@@ -237,9 +237,6 @@ function initializePageContent() {
     document.title = currentVideoTitle + ' - LibreTV播放器';
     document.getElementById('videoTitle').textContent = currentVideoTitle;
 
-    // 初始化 art 播放器
-    // initArtPlayer();
-
     // 初始化播放器
     if (videoUrl) {
         initPlayer(videoUrl);
@@ -356,9 +353,11 @@ function initPlayer(videoUrl) {
         return
     }
 
+    console.log('初始化播放器:', videoUrl);
+
     // 销毁旧实例
     if (art) {
-        art.destroy(true);
+        art.destroy();
         art = null;
     }
 
@@ -909,11 +908,7 @@ function playEpisode(index) {
     } else {
         console.error('播放器实例不存在');
         // 尝试重新初始化剧集
-        initPlayer(url, sourceCode);
-    }
-
-    if (art && autoplayEnabled) {
-        art.play();
+        initPlayer(url);
     }
 
     // 更新UI
