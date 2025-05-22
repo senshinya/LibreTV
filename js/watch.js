@@ -85,6 +85,12 @@ window.onload = function() {
     if (manualRedirect) {
         manualRedirect.href = finalPlayerUrl;
     }
+
+    // 更新meta refresh标签
+    const metaRefresh = document.querySelector('meta[http-equiv="refresh"]');
+    if (metaRefresh) {
+        metaRefresh.content = `3; url=${finalPlayerUrl}`;
+    }
     
     // 重定向到播放器页面
     setTimeout(() => {
