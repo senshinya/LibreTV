@@ -397,8 +397,6 @@ function initPlayer(videoUrl) {
         url: videoUrl,
         type: 'm3u8',
         title: videoTitle,
-        poster: posterUrl,
-        posterScaling: 'contain',
         volume: 0.8,
         isLive: false,
         muted: false,
