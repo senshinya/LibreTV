@@ -826,6 +826,7 @@ function setupArtPlayerEvents() {
     art.on('video:ended', function () {
         videoHasEnded = true;
         console.log('视频播放结束');
+        clearVideoProgress();
 
         // 如果自动播放下一集开启，且确实有下一集
         if (autoplayEnabled && currentEpisodeIndex < currentEpisodes.length - 1) {
@@ -1097,6 +1098,10 @@ function playEpisode(index) {
 
     // 更新当前剧集索引
     currentEpisodeIndex = index;
+    currentVideoUrl = url;
+    videoHasEnded = false; // 重置视频结束标志
+
+    clearVideoProgress();
 
     // 使用art.switch切换视频源
     if (art) {
