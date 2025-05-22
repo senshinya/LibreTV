@@ -839,14 +839,22 @@ function playEpisode(index) {
     if (art) {
         // 使用art.switch切换视频URL
         art.switch = url;
-        
-        // 更新播放器UI状态
-        updateButtonStates();
-        highlightCurrentEpisode();
     } else {
         console.error('播放器实例不存在');
-        showToast('播放器实例不存在，无法切换剧集', 'error');
+        // 尝试重新初始化剧集
+        initPlayer(url, sourceCode);
     }
+
+    // 更新UI
+    updateEpisodeInfo();
+    updateButtonStates();
+    renderEpisodes();
+
+    // 重置用户点击位置记录
+    userClickedPosition = null;
+    
+    // 三秒后保存到历史记录
+    setTimeout(() => saveToHistory(), 3000);
 }
 
 // 播放上一集
