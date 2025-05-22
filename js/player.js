@@ -95,7 +95,6 @@ let currentHls = null; // 跟踪当前HLS实例
 let currentEpisodes = [];
 let episodesReversed = false;
 let autoplayEnabled = true; // 默认开启自动连播
-let isUserSeeking = false; // 跟踪用户是否正在拖动进度条
 let videoHasEnded = false; // 跟踪视频是否已经自然结束
 let userClickedPosition = null; // 记录用户点击的位置
 let shortcutHintTimeout = null; // 用于控制快捷键提示显示时间
@@ -625,47 +624,6 @@ function initPlayer(videoUrl) {
     // 添加移动端长按三倍速播放功能
     setupLongPressSpeedControl();
 
-    art.on('video:seeking', function () {
-        isUserSeeking = true;
-        videoHasEnded = false; // 重置视频结束标志
-
-        // 如果是用户通过点击进度条设置的位置，确保准确跳转
-        if (userClickedPosition !== null && art.video) {
-            // 确保用户的点击位置被正确应用，避免自动跳至视频末尾
-            const clickedTime = userClickedPosition;
-
-            // 防止跳转到视频结尾
-            if (Math.abs(art.video.duration - clickedTime) < 0.5) {
-                // 如果点击的位置非常接近结尾，稍微减少一点时间
-                art.video.currentTime = Math.max(0, clickedTime - 0.5);
-            } else {
-                art.video.currentTime = clickedTime;
-            }
-
-            // 清除记录的位置
-            setTimeout(() => {
-                userClickedPosition = null;
-            }, 200);
-        }
-    });
-
-    // 改进seeked事件处理
-    art.on('video:seeked', function () {
-        // 如果视频跳转到了非常接近结尾的位置(小于0.3秒)，且不是自然播放到此处
-        if (art.video && art.video.duration > 0) {
-            const timeFromEnd = art.video.duration - art.video.currentTime;
-            if (timeFromEnd < 0.3 && isUserSeeking) {
-                // 将播放时间往回移动一点点，避免触发结束事件
-                art.video.currentTime = Math.max(0, art.video.currentTime - 1);
-            }
-        }
-
-        // 延迟重置seeking标志，以便于区分自然播放结束和用户拖拽
-        setTimeout(() => {
-            isUserSeeking = false;
-        }, 200);
-    });
-
     // 视频播放结束事件
     art.on('video:ended', function () {
         videoHasEnded = true;
@@ -686,17 +644,8 @@ function initPlayer(videoUrl) {
         }
     });
 
-    art.on('timeupdate', function () {
-        if (art.video && art.duration > 0) {
-            // 如果视频接近结尾但不是自然播放到结尾，重置自然结束标志
-            if (isUserSeeking && art.video.currentTime > art.video.duration * 0.95) {
-                videoHasEnded = false;
-            }
-        }
-    });
-
     // 添加双击全屏支持
-    art.on('playing', () => {
+    art.on('video:playing', () => {
         // 绑定双击事件到视频容器
         if (art.video) {
             art.video.addEventListener('dblclick', () => {
