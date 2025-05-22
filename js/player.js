@@ -319,8 +319,7 @@ function handleKeyboardShortcuts(e) {
 
     // f 键 = 切换全屏
     if (e.key === 'f' || e.key === 'F') {
-        console.log('切换全屏');
-        if (art && art.fullScreen) {
+        if (art) {
             art.fullScreen = !art.fullScreen;
             showShortcutHint('切换全屏', 'fullscreen');
             e.preventDefault();
