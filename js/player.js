@@ -661,6 +661,7 @@ function initPlayer(videoUrl) {
         if (art.video) {
             art.video.addEventListener('dblclick', () => {
                 art.fullscreen = !art.fullscreen;
+                art.play();
             });
         }
     });
