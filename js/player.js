@@ -685,10 +685,8 @@ function initPlayer(videoUrl) {
             // 稍长延迟以确保所有事件处理完成
             setTimeout(() => {
                 // 确认不是因为用户拖拽导致的假结束事件
-                if (videoHasEnded && !isUserSeeking) {
-                    playNextEpisode();
-                    videoHasEnded = false; // 重置标志
-                }
+                playNextEpisode();
+                videoHasEnded = false; // 重置标志
             }, 1000);
         } else {
             console.log('视频播放结束，无下一集或未启用自动连播');
