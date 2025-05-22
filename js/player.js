@@ -435,6 +435,22 @@ function initPlayer(videoUrl, sourceCode) {
                 saveToHistory();
                 // 启动定期保存播放进度
                 startProgressSaveInterval();
+                // 10秒后如果仍在加载，但不立即显示错误
+                setTimeout(function() {
+                    // 如果视频已经播放开始，则不显示错误
+                    if (art && art.video && art.video.currentTime > 0) {
+                        return;
+                    }
+                    
+                    const loadingElement = document.getElementById('loading');
+                    if (loadingElement && loadingElement.style.display !== 'none') {
+                        loadingElement.innerHTML = `
+                            <div class="loading-spinner"></div>
+                            <div>视频加载时间较长，请耐心等待...</div>
+                            <div style="font-size: 12px; color: #aaa; margin-top: 10px;">如长时间无响应，请尝试其他视频源</div>
+                        `;
+                    }
+                }, 10000);
             })
             .catch(error => {
                 console.error('加载视频失败:', error);
@@ -449,8 +465,6 @@ function initPlayer(videoUrl, sourceCode) {
 // 设置ArtPlayer事件处理
 function setupArtPlayerEvents() {
     if (!art) return;
-    
-    // 事件映射 - 将ArtPlayer事件映射到原DPlayer事件处理函数
     
     // 视频加载完成事件
     art.on('ready', function() {
@@ -520,6 +534,68 @@ function setupArtPlayerEvents() {
             window.screen.orientation.unlock();
         }
     });
+
+    art.on('seeking', function() {
+        isUserSeeking = true;
+        videoHasEnded = false; // 重置视频结束标志
+        
+        // 如果是用户通过点击进度条设置的位置，确保准确跳转
+        if (userClickedPosition !== null && art.video) {
+            // 确保用户的点击位置被正确应用，避免自动跳至视频末尾
+            const clickedTime = userClickedPosition;
+            
+            // 防止跳转到视频结尾
+            if (Math.abs(art.video.duration - clickedTime) < 0.5) {
+                // 如果点击的位置非常接近结尾，稍微减少一点时间
+                art.video.currentTime = Math.max(0, clickedTime - 0.5);
+            } else {
+                art.video.currentTime = clickedTime;
+            }
+            
+            // 清除记录的位置
+            setTimeout(() => {
+                userClickedPosition = null;
+            }, 200);
+        }
+    });
+    
+    // 改进seeked事件处理
+    art.on('seeked', function() {
+        // 如果视频跳转到了非常接近结尾的位置(小于0.3秒)，且不是自然播放到此处
+        if (art.video && art.video.duration > 0) {
+            const timeFromEnd = art.video.duration - art.video.currentTime;
+            if (timeFromEnd < 0.3 && isUserSeeking) {
+                // 将播放时间往回移动一点点，避免触发结束事件
+                art.video.currentTime = Math.max(0, art.video.currentTime - 1);
+            }
+        }
+        
+        // 延迟重置seeking标志，以便于区分自然播放结束和用户拖拽
+        setTimeout(() => {
+            isUserSeeking = false;
+        }, 200);
+    });
+
+    art.on('timeupdate', function() {
+        if (art.video && art.duration > 0) {
+            // 如果视频接近结尾但不是自然播放到结尾，重置自然结束标志
+            if (isUserSeeking && art.video.currentTime > art.video.duration * 0.95) {
+                videoHasEnded = false;
+            }
+        }
+    });
+
+    // 添加双击全屏支持
+    art.on('playing', () => {
+        // 绑定双击事件到视频容器
+        if (art.video) {
+            art.video.addEventListener('dblclick', () => {
+                if (art.fullScreen && typeof art.fullScreen.toggle === 'function') {
+                    art.fullScreen.toggle();
+                }
+            });
+        }
+    });
 }
 
 // 恢复播放进度
@@ -556,144 +632,12 @@ function restorePlaybackPosition() {
         }
     }
 }
-    // Note: fullscreen_cancel is already handled in setupArtPlayerEvents
     
 // Simple implementation of findSourceInfoByCode
 function findSourceInfoByCode(code) {
     // This is a basic implementation - adjust as needed
     return { name: code || '未知来源' };
 }
-
-    // 添加seeking和seeked事件监听器，以检测用户是否在拖动进度条
-    if (art && art.on) {
-        art.on('seeking', function() {
-            isUserSeeking = true;
-            videoHasEnded = false; // 重置视频结束标志
-            
-            // 如果是用户通过点击进度条设置的位置，确保准确跳转
-            if (userClickedPosition !== null && art.video) {
-                // 确保用户的点击位置被正确应用，避免自动跳至视频末尾
-                const clickedTime = userClickedPosition;
-                
-                // 防止跳转到视频结尾
-                if (Math.abs(art.video.duration - clickedTime) < 0.5) {
-                    // 如果点击的位置非常接近结尾，稍微减少一点时间
-                    art.video.currentTime = Math.max(0, clickedTime - 0.5);
-                } else {
-                    art.video.currentTime = clickedTime;
-                }
-                
-                // 清除记录的位置
-                setTimeout(() => {
-                    userClickedPosition = null;
-                }, 200);
-            }
-        });
-        
-        // 改进seeked事件处理
-        art.on('seeked', function() {
-            // 如果视频跳转到了非常接近结尾的位置(小于0.3秒)，且不是自然播放到此处
-            if (art.video && art.video.duration > 0) {
-                const timeFromEnd = art.video.duration - art.video.currentTime;
-                if (timeFromEnd < 0.3 && isUserSeeking) {
-                    // 将播放时间往回移动一点点，避免触发结束事件
-                    art.video.currentTime = Math.max(0, art.video.currentTime - 1);
-                }
-            }
-            
-            // 延迟重置seeking标志，以便于区分自然播放结束和用户拖拽
-            setTimeout(() => {
-                isUserSeeking = false;
-            }, 200);
-        });
-        
-        // 修改视频结束事件监听器，添加额外检查
-        art.on('ended', function() {
-            videoHasEnded = true; // 标记视频已自然结束
-            
-            // 视频已播放完，清除播放进度记录
-            clearVideoProgress();
-            
-            // 如果启用了自动连播，并且有下一集可播放，则自动播放下一集
-            if (autoplayEnabled && currentEpisodeIndex < currentEpisodes.length - 1) {
-                console.log('视频播放结束，自动播放下一集');
-                // 稍长延迟以确保所有事件处理完成
-                setTimeout(() => {
-                    // 确认不是因为用户拖拽导致的假结束事件
-                    if (videoHasEnded && !isUserSeeking) {
-                        playNextEpisode();
-                        videoHasEnded = false; // 重置标志
-                    }
-                }, 1000);
-            } else {
-                console.log('视频播放结束，无下一集或未启用自动连播');
-            }
-        });
-    }
-    
-    // 添加事件监听以检测近视频末尾的点击拖动
-    if (art) {
-        art.on('timeupdate', function() {
-            if (art.video && art.duration > 0) {
-                // 如果视频接近结尾但不是自然播放到结尾，重置自然结束标志
-                if (isUserSeeking && art.video.currentTime > art.video.duration * 0.95) {
-                    videoHasEnded = false;
-                }
-            }
-        });
-
-        // 添加双击全屏支持
-        art.on('playing', () => {
-            // 绑定双击事件到视频容器
-            if (art.video) {
-                art.video.addEventListener('dblclick', () => {
-                    if (art.fullScreen && typeof art.fullScreen.toggle === 'function') {
-                        art.fullScreen.toggle();
-                    }
-                });
-            }
-        });
-    }
-
-    // 10秒后如果仍在加载，但不立即显示错误
-    setTimeout(function() {
-        // 如果视频已经播放开始，则不显示错误
-        if (art && art.video && art.video.currentTime > 0) {
-            return;
-        }
-        
-        const loadingElement = document.getElementById('loading');
-        if (loadingElement && loadingElement.style.display !== 'none') {
-            loadingElement.innerHTML = `
-                <div class="loading-spinner"></div>
-                <div>视频加载时间较长，请耐心等待...</div>
-                <div style="font-size: 12px; color: #aaa; margin-top: 10px;">如长时间无响应，请尝试其他视频源</div>
-            `;
-        }
-    }, 10000);
-
-    // 绑定原生全屏：DPlayer 触发全屏时调用 requestFullscreen
-    (function(){
-        const fsContainer = document.getElementById('playerContainer');
-        if (art && art.on && fsContainer) {
-            try {
-                art.on('fullscreen', () => {
-                    if (fsContainer.requestFullscreen) {
-                        fsContainer.requestFullscreen().catch(err => console.warn('原生全屏失败:', err));
-                    }
-                });
-                art.on('fullscreen_cancel', () => {
-                    if (document.fullscreenElement) {
-                        document.exitFullscreen();
-                    }
-                });
-            } catch (e) {
-                console.warn('绑定全屏事件时出错:', e);
-            }
-        }
-    })();
-
-
 
 // 过滤可疑的广告内容
 function filterAdsFromM3U8(m3u8Content, strictMode = false) {
