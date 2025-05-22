@@ -320,7 +320,7 @@ function handleKeyboardShortcuts(e) {
     // f 键 = 切换全屏
     if (e.key === 'f' || e.key === 'F') {
         if (art) {
-            art.fullScreen = !art.fullScreen;
+            art.fullscreen = !art.fullscreen;
             showShortcutHint('切换全屏', 'fullscreen');
             e.preventDefault();
         }
