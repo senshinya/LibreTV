@@ -560,14 +560,7 @@ function initPlayer(videoUrl) {
         }
     });
 
-    // 退出全屏模式
-    art.on('fullscreen_cancel', function () {
-        if (window.screen.orientation && window.screen.orientation.unlock) {
-            window.screen.orientation.unlock();
-        }
-    });
-
-    art.on('loadmetadata', function() {
+    art.on('video:loadmetadata', function() {
         document.getElementById('loading').style.display = 'none';
         videoHasEnded = false; // 视频加载时重置结束标志
         // 优先使用URL传递的position参数
@@ -611,7 +604,7 @@ function initPlayer(videoUrl) {
     })
 
     // 错误处理
-    art.on('error', function (error) {
+    art.on('video:error', function (error) {
         // 如果正在切换视频，忽略错误
         if (window.isSwitchingVideo) {
             console.log('正在切换视频，忽略错误');
@@ -632,7 +625,7 @@ function initPlayer(videoUrl) {
     // 添加移动端长按三倍速播放功能
     setupLongPressSpeedControl();
 
-    art.on('seeking', function () {
+    art.on('video:seeking', function () {
         isUserSeeking = true;
         videoHasEnded = false; // 重置视频结束标志
 
@@ -657,7 +650,7 @@ function initPlayer(videoUrl) {
     });
 
     // 改进seeked事件处理
-    art.on('seeked', function () {
+    art.on('video:seeked', function () {
         // 如果视频跳转到了非常接近结尾的位置(小于0.3秒)，且不是自然播放到此处
         if (art.video && art.video.duration > 0) {
             const timeFromEnd = art.video.duration - art.video.currentTime;
@@ -674,7 +667,7 @@ function initPlayer(videoUrl) {
     });
 
     // 视频播放结束事件
-    art.on('ended', function () {
+    art.on('video:ended', function () {
         videoHasEnded = true;
 
         clearVideoProgress();
