@@ -1146,6 +1146,7 @@ function startProgressSaveInterval() {
 
 // 保存当前播放进度
 function saveCurrentProgress() {
+    console.log('保存当前播放进度');
     if (!art || !art.video) return;
     const currentTime = art.video.currentTime;
     const duration = art.video.duration;
@@ -1184,7 +1185,7 @@ function saveCurrentProgress() {
                 }
             }
         } catch (e) {
-            // 忽略 viewingHistory 更新错误
+            console.log('同步更新 viewingHistory 中的进度失败', e);
         }
     } catch (e) {
         console.error('保存播放进度失败', e);
