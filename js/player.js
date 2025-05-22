@@ -1089,19 +1089,19 @@ function playEpisode(index) {
     // 准备切换剧集的URL
     const url = currentEpisodes[index];
 
-    // 更新URL参数（不刷新页面）
-    const currentUrl = new URL(window.location.href);
-    currentUrl.searchParams.set('index', index);
-    currentUrl.searchParams.set('url', url);
-    currentUrl.searchParams.delete('position');
-    window.history.replaceState({}, '', currentUrl.toString());
-
     // 更新当前剧集索引
     currentEpisodeIndex = index;
     currentVideoUrl = url;
     videoHasEnded = false; // 重置视频结束标志
 
     clearVideoProgress();
+
+    // 更新URL参数（不刷新页面）
+    const currentUrl = new URL(window.location.href);
+    currentUrl.searchParams.set('index', index);
+    currentUrl.searchParams.set('url', url);
+    currentUrl.searchParams.delete('position');
+    window.history.replaceState({}, '', currentUrl.toString());
 
     // 使用art.switch切换视频源
     if (art) {
