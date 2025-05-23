@@ -848,15 +848,7 @@ function playEpisode(index) {
     currentUrl.searchParams.delete('position');
     window.history.replaceState({}, '', currentUrl.toString());
 
-    // 使用art.switch切换视频源
-    if (art) {
-        // 使用art.switch切换视频URL
-        art.switch = url;
-    } else {
-        console.error('播放器实例不存在');
-        // 尝试重新初始化剧集
-        initPlayer(url);
-    }
+    initPlayer(url);
 
     // 更新UI
     updateEpisodeInfo();
