@@ -72,12 +72,6 @@ window.onload = function() {
         localStorage.setItem('searchPageUrl', returnUrl);
     }
     
-    // 这是调试代码，可以帮助识别问题，可选择保留或删除
-    console.log('传递给player.html的参数:');
-    playerUrlObj.searchParams.forEach((value, key) => {
-        console.log(`- ${key}: ${value}`);
-    });
-    
     // 获取最终的URL字符串
     const finalPlayerUrl = playerUrlObj.toString();
     

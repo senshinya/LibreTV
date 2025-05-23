@@ -110,7 +110,7 @@ document.addEventListener('passwordVerified', () => {
 
 // 初始化页面内容
 function initializePageContent() {
-    console.log(window.location.href);
+
     // 解析URL参数
     const urlParams = new URLSearchParams(window.location.search);
     let videoUrl = urlParams.get('url');
@@ -122,7 +122,6 @@ function initializePageContent() {
     // 解决历史记录问题：检查URL是否是player.html开头的链接
     // 如果是，说明这是历史记录重定向，需要解析真实的视频URL
     if (videoUrl && videoUrl.includes('player.html')) {
-        console.log('检测到历史记录重定向URL:', videoUrl);
         try {
             // 尝试从嵌套URL中提取真实的视频链接
             const nestedUrlParams = new URLSearchParams(videoUrl.split('?')[1]);
@@ -135,7 +134,6 @@ function initializePageContent() {
 
             if (nestedVideoUrl) {
                 videoUrl = nestedVideoUrl;
-                console.log('已修正为真实视频URL:', videoUrl);
 
                 // 更新当前URL参数
                 const url = new URL(window.location.href);
@@ -150,13 +148,10 @@ function initializePageContent() {
                 }
                 // 替换当前URL
                 window.history.replaceState({}, '', url);
-                console.log('从嵌套URL提取参数:', { position: nestedPosition, index: nestedIndex });
             } else {
-                console.warn('无法从重定向URL中提取视频链接');
                 showError('历史记录链接无效，请返回首页重新访问');
             }
         } catch (e) {
-            console.error('解析嵌套URL出错:', e);
         }
     }
 
@@ -185,17 +180,15 @@ function initializePageContent() {
         if (episodesList) {
             // 如果URL中有集数数据，优先使用它
             currentEpisodes = JSON.parse(decodeURIComponent(episodesList));
-            console.log('从URL恢复集数信息:', currentEpisodes.length);
+
         } else {
             // 否则从localStorage获取
             currentEpisodes = JSON.parse(localStorage.getItem('currentEpisodes') || '[]');
-            console.log('从localStorage恢复集数信息:', currentEpisodes.length);
+
         }
 
         // 检查集数索引是否有效，如果无效则调整为0
         if (index < 0 || (currentEpisodes.length > 0 && index >= currentEpisodes.length)) {
-            console.warn(`无效的剧集索引 ${index}，调整为范围内的值`);
-
             // 如果索引太大，则使用最大有效索引
             if (index >= currentEpisodes.length && currentEpisodes.length > 0) {
                 index = currentEpisodes.length - 1;
@@ -214,7 +207,6 @@ function initializePageContent() {
 
         episodesReversed = localStorage.getItem('episodesReversed') === 'true';
     } catch (e) {
-        console.error('获取集数信息失败:', e);
         currentEpisodes = [];
         currentEpisodeIndex = 0;
         episodesReversed = false;
@@ -402,8 +394,6 @@ function initPlayer(videoUrl) {
         return
     }
 
-    console.log('初始化播放器:', videoUrl);
-
     // 销毁旧实例
     if (art) {
         art.destroy();
@@ -480,7 +470,6 @@ function initPlayer(videoUrl) {
                     try {
                         currentHls.destroy();
                     } catch (e) {
-                        console.warn('销毁旧HLS实例出错:', e);
                     }
                 }
 
@@ -531,24 +520,18 @@ function initPlayer(videoUrl) {
 
                 hls.on(Hls.Events.MANIFEST_PARSED, function () {
                     video.play().catch(e => {
-                        console.warn('自动播放被阻止:', e);
                     });
                 });
 
                 hls.on(Hls.Events.ERROR, function (event, data) {
-                    console.log('HLS事件:', event, '数据:', data);
-
                     // 增加错误计数
                     errorCount++;
 
                     // 处理bufferAppendError
                     if (data.details === 'bufferAppendError') {
                         bufferAppendErrorCount++;
-                        console.warn(`bufferAppendError 发生 ${bufferAppendErrorCount} 次`);
-
                         // 如果视频已经开始播放，则忽略这个错误
                         if (playbackStarted) {
-                            console.log('视频已在播放中，忽略bufferAppendError');
                             return;
                         }
 
@@ -560,16 +543,12 @@ function initPlayer(videoUrl) {
 
                     // 如果是致命错误，且视频未播放
                     if (data.fatal && !playbackStarted) {
-                        console.error('致命HLS错误:', data);
-
                         // 尝试恢复错误
                         switch (data.type) {
                             case Hls.ErrorTypes.NETWORK_ERROR:
-                                console.log("尝试恢复网络错误");
                                 hls.startLoad();
                                 break;
                             case Hls.ErrorTypes.MEDIA_ERROR:
-                                console.log("尝试恢复媒体错误");
                                 hls.recoverMediaError();
                                 break;
                             default:
@@ -601,10 +580,8 @@ function initPlayer(videoUrl) {
         if (window.screen.orientation && window.screen.orientation.lock) {
             window.screen.orientation.lock('landscape')
                 .then(() => {
-                    console.log('屏幕已锁定为横向模式');
                 })
                 .catch((error) => {
-                    console.warn('无法锁定屏幕方向:', error);
                 });
         }
     });
@@ -638,7 +615,6 @@ function initPlayer(videoUrl) {
                     }
                 }
             } catch (e) {
-                console.error('恢复播放进度失败:', e);
             }
         }
 
@@ -656,11 +632,8 @@ function initPlayer(videoUrl) {
     art.on('video:error', function (error) {
         // 如果正在切换视频，忽略错误
         if (window.isSwitchingVideo) {
-            console.log('正在切换视频，忽略错误');
             return;
         }
-
-        console.error('播放器错误:', error);
 
         // 隐藏所有加载指示器
         const loadingElements = document.querySelectorAll('#loading, .player-loading-container');
@@ -682,7 +655,6 @@ function initPlayer(videoUrl) {
 
         // 如果自动播放下一集开启，且确实有下一集
         if (autoplayEnabled && currentEpisodeIndex < currentEpisodes.length - 1) {
-            console.log('自动播放下一集...');
             // 稍长延迟以确保所有事件处理完成
             setTimeout(() => {
                 // 确认不是因为用户拖拽导致的假结束事件
@@ -690,7 +662,6 @@ function initPlayer(videoUrl) {
                 videoHasEnded = false; // 重置标志
             }, 1000);
         } else {
-            console.log('视频播放结束，无下一集或未启用自动连播');
         }
     });
 
@@ -772,7 +743,6 @@ function filterAdsFromM3U8(m3u8Content, strictMode = false) {
 function showError(message) {
     // 在视频已经播放的情况下不显示错误
     if (art && art.video && art.video.currentTime > 1) {
-        console.log('忽略错误:', message);
         return;
     }
     const loadingEl = document.getElementById('loading');
@@ -854,8 +824,6 @@ function renderEpisodes() {
 function playEpisode(index) {
     // 确保index在有效范围内
     if (index < 0 || index >= currentEpisodes.length) {
-        console.error(`无效的剧集索引: ${index}, 当前剧集数量: ${currentEpisodes.length}`);
-        showToast(`无效的剧集索引: ${index + 1}，当前剧集总数: ${currentEpisodes.length}`);
         return;
     }
 
@@ -870,14 +838,14 @@ function playEpisode(index) {
         progressSaveInterval = null;
     }
 
-     // 首先隐藏之前可能显示的错误
-     document.getElementById('error').style.display = 'none';
-     // 显示加载指示器
-     document.getElementById('loading').style.display = 'flex';
-     document.getElementById('loading').innerHTML = `
-         <div class="loading-spinner"></div>
-         <div>正在加载视频...</div>
-     `;
+    // 首先隐藏之前可能显示的错误
+    document.getElementById('error').style.display = 'none';
+    // 显示加载指示器
+    document.getElementById('loading').style.display = 'flex';
+    document.getElementById('loading').innerHTML = `
+        <div class="loading-spinner"></div>
+        <div>正在加载视频...</div>
+    `;
 
     // 获取 sourceCode
     const urlParams2 = new URLSearchParams(window.location.search);
@@ -983,71 +951,63 @@ function setupProgressBarPreciseClicks() {
     progressBar.removeEventListener('touchstart', handleProgressBarTouch);
     progressBar.addEventListener('touchstart', handleProgressBarTouch);
 
-    console.log('进度条精确点击监听器已设置');
-}
+    // 处理进度条点击
+    function handleProgressBarClick(e) {
+        if (!art || !art.video) return;
 
-// 处理进度条点击
-function handleProgressBarClick(e) {
-    if (!art || !art.video) return;
+        // 计算点击位置相对于进度条的比例
+        const rect = e.currentTarget.getBoundingClientRect();
+        const percentage = (e.clientX - rect.left) / rect.width;
 
-    // 计算点击位置相对于进度条的比例
-    const rect = e.currentTarget.getBoundingClientRect();
-    const percentage = (e.clientX - rect.left) / rect.width;
+        // 计算点击位置对应的视频时间
+        const duration = art.video.duration;
+        let clickTime = percentage * duration;
 
-    // 计算点击位置对应的视频时间
-    const duration = art.video.duration;
-    let clickTime = percentage * duration;
+        // 处理视频接近结尾的情况
+        if (duration - clickTime < 1) {
+            // 如果点击位置非常接近结尾，稍微往前移一点
+            clickTime = Math.min(clickTime, duration - 1.5);
 
-    // 处理视频接近结尾的情况
-    if (duration - clickTime < 1) {
-        // 如果点击位置非常接近结尾，稍微往前移一点
-        clickTime = Math.min(clickTime, duration - 1.5);
-        console.log(`进度条点击接近结尾，调整时间为 ${clickTime.toFixed(2)}/${duration.toFixed(2)}`);
+        }
+
+        // 记录用户点击的位置
+        userClickedPosition = clickTime;
+
+        // 阻止默认事件传播，避免DPlayer内部逻辑将视频跳至末尾
+        e.stopPropagation();
+
+        // 直接设置视频时间
+        art.seek(clickTime);
     }
 
-    // 记录用户点击的位置
-    userClickedPosition = clickTime;
+    // 处理移动端触摸事件
+    function handleProgressBarTouch(e) {
+        if (!art || !art.video || !e.touches[0]) return;
 
-    // 输出调试信息
-    console.log(`进度条点击: ${percentage.toFixed(4)}, 时间: ${clickTime.toFixed(2)}/${duration.toFixed(2)}`);
+        const touch = e.touches[0];
+        const rect = e.currentTarget.getBoundingClientRect();
+        const percentage = (touch.clientX - rect.left) / rect.width;
 
-    // 阻止默认事件传播，避免DPlayer内部逻辑将视频跳至末尾
-    e.stopPropagation();
+        const duration = art.video.duration;
+        let clickTime = percentage * duration;
 
-    // 直接设置视频时间
-    art.seek(clickTime);
-}
+        // 处理视频接近结尾的情况
+        if (duration - clickTime < 1) {
+            clickTime = Math.min(clickTime, duration - 1.5);
+        }
 
-// 处理移动端触摸事件
-function handleProgressBarTouch(e) {
-    if (!art || !art.video || !e.touches[0]) return;
+        // 记录用户点击的位置
+        userClickedPosition = clickTime;
 
-    const touch = e.touches[0];
-    const rect = e.currentTarget.getBoundingClientRect();
-    const percentage = (touch.clientX - rect.left) / rect.width;
-
-    const duration = art.video.duration;
-    let clickTime = percentage * duration;
-
-    // 处理视频接近结尾的情况
-    if (duration - clickTime < 1) {
-        clickTime = Math.min(clickTime, duration - 1.5);
+        e.stopPropagation();
+        art.seek(clickTime);
     }
-
-    // 记录用户点击的位置
-    userClickedPosition = clickTime;
-
-    console.log(`进度条触摸: ${percentage.toFixed(4)}, 时间: ${clickTime.toFixed(2)}/${duration.toFixed(2)}`);
-
-    e.stopPropagation();
-    art.seek(clickTime);
 }
 
 // 在播放器初始化后添加视频到历史记录
 function saveToHistory() {
     // 确保 currentEpisodes 非空且有当前视频URL
     if (!currentEpisodes || currentEpisodes.length === 0 || !currentVideoUrl) {
-        console.warn('没有可用的剧集列表或视频URL，无法保存完整的历史记录');
         return;
     }
 
@@ -1055,6 +1015,7 @@ function saveToHistory() {
     const urlParams = new URLSearchParams(window.location.search);
     const sourceName = urlParams.get('source') || '';
     const sourceCode = urlParams.get('source_code') || '';
+    const id_from_params = urlParams.get('id'); // Get video ID from player URL (passed as 'id')
 
     // 获取当前播放进度
     let currentPosition = 0;
@@ -1065,58 +1026,72 @@ function saveToHistory() {
         videoDuration = art.video.duration;
     }
 
+    // Define a show identifier: Prioritize sourceName_id, fallback to first episode URL or current video URL
+    let show_identifier_for_video_info;
+    if (sourceName && id_from_params) {
+        show_identifier_for_video_info = `${sourceName}_${id_from_params}`;
+    } else {
+        show_identifier_for_video_info = (currentEpisodes && currentEpisodes.length > 0) ? currentEpisodes[0] : currentVideoUrl;
+    }
+
     // 构建要保存的视频信息对象
     const videoInfo = {
         title: currentVideoTitle,
-        // 直接保存原始视频链接，而非播放页面链接
-        directVideoUrl: currentVideoUrl,
-        // 完整的播放器URL
-        url: `player.html?url=${encodeURIComponent(currentVideoUrl)}&title=${encodeURIComponent(currentVideoTitle)}&source=${encodeURIComponent(sourceName)}&source_code=${encodeURIComponent(sourceCode)}&index=${currentEpisodeIndex}&position=${Math.floor(currentPosition || 0)}`,
+        directVideoUrl: currentVideoUrl, // Current episode's direct URL
+        url: `player.html?url=${encodeURIComponent(currentVideoUrl)}&title=${encodeURIComponent(currentVideoTitle)}&source=${encodeURIComponent(sourceName)}&source_code=${encodeURIComponent(sourceCode)}&id=${encodeURIComponent(id_from_params || '')}&index=${currentEpisodeIndex}&position=${Math.floor(currentPosition || 0)}`,
         episodeIndex: currentEpisodeIndex,
         sourceName: sourceName,
+        vod_id: id_from_params || '', // Store the ID from params as vod_id in history item
+        sourceCode: sourceCode,
+        showIdentifier: show_identifier_for_video_info, // Identifier for the show/series
         timestamp: Date.now(),
-        // 添加播放进度信息
         playbackPosition: currentPosition,
         duration: videoDuration,
-        // 重要：保存完整的集数列表，确保进行深拷贝
         episodes: currentEpisodes && currentEpisodes.length > 0 ? [...currentEpisodes] : []
     };
-
+    
     try {
-        // 获取现有历史记录
         const history = JSON.parse(localStorage.getItem('viewingHistory') || '[]');
 
-        // 检查是否已经存在相同标题的记录（同一视频的不同集数）
-        const existingIndex = history.findIndex(item => item.title === videoInfo.title);
+        // 检查是否已经存在相同的系列记录 (基于标题、来源和 showIdentifier)
+        const existingIndex = history.findIndex(item => 
+            item.title === videoInfo.title && 
+            item.sourceName === videoInfo.sourceName && 
+            item.showIdentifier === videoInfo.showIdentifier
+        );
+
         if (existingIndex !== -1) {
-            // 存在则更新现有记录的集数、时间戳和URL
-            history[existingIndex].episodeIndex = currentEpisodeIndex;
-            history[existingIndex].timestamp = Date.now();
-            history[existingIndex].sourceName = sourceName;
-            // 更新原始视频URL
-            history[existingIndex].directVideoUrl = currentVideoUrl;
+            // 存在则更新现有记录的当前集数、时间戳、播放进度和URL等
+            const existingItem = history[existingIndex];
+            existingItem.episodeIndex = videoInfo.episodeIndex;
+            existingItem.timestamp = videoInfo.timestamp;
+            existingItem.sourceName = videoInfo.sourceName; // Should be consistent, but update just in case
+            existingItem.sourceCode = videoInfo.sourceCode;
+            existingItem.vod_id = videoInfo.vod_id;
+            
+            // Update URLs to reflect the current episode being watched
+            existingItem.directVideoUrl = videoInfo.directVideoUrl; // Current episode's direct URL
+            existingItem.url = videoInfo.url; // Player link for the current episode
+
             // 更新播放进度信息
-            history[existingIndex].playbackPosition = currentPosition > 10 ? currentPosition : history[existingIndex].playbackPosition;
-            history[existingIndex].duration = videoDuration || history[existingIndex].duration;
-            // 更新完整URL，确保带有正确的视频链接
-            history[existingIndex].url = videoInfo.url;
-            // 更新集数列表（如果有且与当前不同）
-            if (currentEpisodes && currentEpisodes.length > 0) {
-                // 检查是否需要更新集数数据（针对不同长度的集数列表）
-                if (!history[existingIndex].episodes ||
-                    !Array.isArray(history[existingIndex].episodes) ||
-                    history[existingIndex].episodes.length !== currentEpisodes.length) {
-                    history[existingIndex].episodes = [...currentEpisodes]; // 深拷贝
-                    console.log(`更新 "${currentVideoTitle}" 的剧集数据: ${currentEpisodes.length}集`);
+            existingItem.playbackPosition = videoInfo.playbackPosition > 10 ? videoInfo.playbackPosition : (existingItem.playbackPosition || 0);
+            existingItem.duration = videoInfo.duration || existingItem.duration;
+            
+            // 更新集数列表（如果新的集数列表与存储的不同，例如集数增加了）
+            if (videoInfo.episodes && videoInfo.episodes.length > 0) {
+                if (!existingItem.episodes || 
+                    !Array.isArray(existingItem.episodes) || 
+                    existingItem.episodes.length !== videoInfo.episodes.length || 
+                    !videoInfo.episodes.every((ep, i) => ep === existingItem.episodes[i])) { // Basic check for content change
+                    existingItem.episodes = [...videoInfo.episodes]; // Deep copy
                 }
             }
-
+            
             // 移到最前面
             const updatedItem = history.splice(existingIndex, 1)[0];
             history.unshift(updatedItem);
         } else {
             // 添加新记录到最前面
-            console.log(`创建新的历史记录: "${currentVideoTitle}", ${currentEpisodes.length}集`);
             history.unshift(videoInfo);
         }
 
@@ -1124,9 +1099,7 @@ function saveToHistory() {
         if (history.length > 50) history.splice(50);
 
         localStorage.setItem('viewingHistory', JSON.stringify(history));
-        console.log('成功保存历史记录');
     } catch (e) {
-        console.error('保存观看历史失败:', e);
     }
 }
 
@@ -1148,7 +1121,6 @@ function showPositionRestoreHint(position) {
     if (playerContainer) { // Check if playerContainer exists
         playerContainer.appendChild(hint);
     } else {
-        console.warn("Player container not found for position hint.");
         return; // Exit if container not found
     }
 
@@ -1187,7 +1159,6 @@ function startProgressSaveInterval() {
 
 // 保存当前播放进度
 function saveCurrentProgress() {
-    console.log('保存当前播放进度');
     if (!art || !art.video) return;
     const currentTime = art.video.currentTime;
     const duration = art.video.duration;
@@ -1226,10 +1197,8 @@ function saveCurrentProgress() {
                 }
             }
         } catch (e) {
-            console.log('同步更新 viewingHistory 中的进度失败', e);
         }
     } catch (e) {
-        console.error('保存播放进度失败', e);
     }
 }
 
@@ -1353,9 +1322,7 @@ function clearVideoProgress() {
     const progressKey = `videoProgress_${getVideoId()}`;
     try {
         localStorage.removeItem(progressKey);
-        console.log('已清除播放进度记录');
     } catch (e) {
-        console.error('清除播放进度记录失败', e);
     }
 }
 
