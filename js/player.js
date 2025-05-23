@@ -824,7 +824,6 @@ function renderEpisodes() {
 function playEpisode(index) {
     isFullScreen = false
     if (art && art.fullscreen) {
-        console.log('is in fullscreen')
         isFullScreen = true
     }
 
@@ -876,13 +875,6 @@ function playEpisode(index) {
 
     initPlayer(url);
 
-    if (isFullScreen) {
-        setTimeout(() => {
-            art.fullscreen = true
-        }, 500);
-        art.fullscreen = true;
-    }
-
     // 更新UI
     updateEpisodeInfo();
     updateButtonStates();
@@ -890,6 +882,12 @@ function playEpisode(index) {
 
     // 重置用户点击位置记录
     userClickedPosition = null;
+
+    if (isFullScreen) {
+        setTimeout(() => {
+            art.fullscreen = true
+        }, 500);
+    }
 
     // 三秒后保存到历史记录
     setTimeout(() => saveToHistory(), 3000);
