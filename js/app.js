@@ -1126,6 +1126,7 @@ function closeVideoPlayer(home = false) {
         }
     }
     if (home) {
+        // 刷新主页
         window.location.href = '/'
     }
 }
