@@ -824,6 +824,7 @@ function renderEpisodes() {
 function playEpisode(index) {
     isFullScreen = false
     if (art && art.fullscreen) {
+        console.log('is in fullscreen')
         isFullScreen = true
     }
 
