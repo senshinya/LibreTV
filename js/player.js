@@ -876,6 +876,9 @@ function playEpisode(index) {
     initPlayer(url);
 
     if (isFullScreen) {
+        setTimeout(() => {
+            art.fullscreen = true
+        }, 500);
         art.fullscreen = true;
     }
 
