@@ -822,6 +822,11 @@ function renderEpisodes() {
 
 // 播放指定集数
 function playEpisode(index) {
+    isFullScreen = false
+    if (art && art.fullscreen) {
+        isFullScreen = true
+    }
+
     // 确保index在有效范围内
     if (index < 0 || index >= currentEpisodes.length) {
         return;
@@ -869,6 +874,10 @@ function playEpisode(index) {
     window.history.replaceState({}, '', currentUrl.toString());
 
     initPlayer(url);
+
+    if (isFullScreen) {
+        art.fullscreen = true;
+    }
 
     // 更新UI
     updateEpisodeInfo();
