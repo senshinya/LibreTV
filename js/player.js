@@ -304,6 +304,51 @@ function handleKeyboardShortcuts(e) {
         }
     }
 
+    // 左箭头 = 快退
+    if (!e.altKey && e.key === 'ArrowLeft') {
+        if (art && art.currentTime > 5) {
+            art.currentTime -= 5;
+            showShortcutHint('快退', 'left');
+            e.preventDefault();
+        }
+    }
+
+    // 右箭头 = 快进
+    if (!e.altKey && e.key === 'ArrowRight') {
+        if (art && art.currentTime < art.duration - 5) {
+            art.currentTime += 5;
+            showShortcutHint('快进', 'right');
+            e.preventDefault();
+        }
+    }
+
+    // 上箭头 = 音量+
+    if (e.key === 'ArrowUp') {
+        if (art && art.volume < 1) {
+            art.volume += 0.1;
+            showShortcutHint('音量+', 'up');
+            e.preventDefault();
+        }
+    }
+
+    // 下箭头 = 音量-
+    if (e.key === 'ArrowDown') {
+        if (art && art.volume > 0) {
+            art.volume -= 0.1;
+            showShortcutHint('音量-', 'down');
+            e.preventDefault();
+        }
+    }
+
+    // 空格 = 播放/暂停
+    if (e.key === 'Space') {
+        if (art) {
+            art.toggle();
+            showShortcutHint('播放/暂停', 'play');
+            e.preventDefault();
+        }
+    }
+
     // f 键 = 切换全屏
     if (e.key === 'f' || e.key === 'F') {
         if (art) {
@@ -332,8 +377,14 @@ function showShortcutHint(text, direction) {
         iconElement.innerHTML = '<path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7"></path>';
     } else if (direction === 'right') {
         iconElement.innerHTML = '<path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"></path>';
+    }  else if (direction === 'up') {
+        iconElement.innerHTML = '<path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 15l7-7 7 7"></path>';
+    } else if (direction === 'down') {
+        iconElement.innerHTML = '<path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"></path>';
     } else if (direction === 'fullscreen') {
         iconElement.innerHTML = '<path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 8V4m0 0h4M4 4l5 5m11-1V4m0 0h-4m4 0l-5 5M4 16v4m0 0h4m-4 0l5-5m11 5v-4m0 4h-4m4 0l-5-5"></path>';
+    } else if (direction === 'play') {
+        iconElement.innerHTML = '<path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 3l14 9-14 9V3z"></path>';
     }
 
     // 显示提示
@@ -416,6 +467,7 @@ function initPlayer(videoUrl) {
         playsInline: true,
         autoPlayback: false,
         airplay: true,
+        hotkey: false,
         theme: '#23ade5',
         lang: navigator.language.toLowerCase(),
         moreVideoAttr: {

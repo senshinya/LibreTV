@@ -1124,7 +1124,7 @@ function closeVideoPlayer(home = false) {
         }
     }
     if (home) {
-        resetToHome();
+        window.location.href = '/'
     }
 }
 
