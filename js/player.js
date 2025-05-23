@@ -399,7 +399,7 @@ function initPlayer(videoUrl) {
         muted: false,
         autoplay: true,
         pip: true,
-        autoSize: true,
+        autoSize: false,
         autoMini: true,
         screenshot: true,
         setting: true,
