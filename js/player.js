@@ -653,6 +653,11 @@ function initPlayer(videoUrl) {
 
         clearVideoProgress();
 
+        isFullScreen = false
+        if (art && art.fullscreen) {
+            isFullScreen = true
+        }
+
         // 如果自动播放下一集开启，且确实有下一集
         if (autoplayEnabled && currentEpisodeIndex < currentEpisodes.length - 1) {
             // 稍长延迟以确保所有事件处理完成
@@ -660,6 +665,11 @@ function initPlayer(videoUrl) {
                 // 确认不是因为用户拖拽导致的假结束事件
                 playNextEpisode();
                 videoHasEnded = false; // 重置标志
+                if (isFullScreen) {
+                    setTimeout(() => {
+                        art.fullscreen =true;
+                    }, 1000);
+                }
             }, 1000);
         } else {
         }
@@ -822,11 +832,6 @@ function renderEpisodes() {
 
 // 播放指定集数
 function playEpisode(index) {
-    isFullScreen = false
-    if (art && art.fullscreen) {
-        isFullScreen = true
-    }
-
     // 确保index在有效范围内
     if (index < 0 || index >= currentEpisodes.length) {
         return;
@@ -882,12 +887,6 @@ function playEpisode(index) {
 
     // 重置用户点击位置记录
     userClickedPosition = null;
-
-    if (isFullScreen) {
-        setTimeout(() => {
-            art.fullscreen = true
-        }, 500);
-    }
 
     // 三秒后保存到历史记录
     setTimeout(() => saveToHistory(), 3000);
