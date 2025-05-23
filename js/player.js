@@ -341,7 +341,7 @@ function handleKeyboardShortcuts(e) {
     }
 
     // 空格 = 播放/暂停
-    if (e.key === 'Space') {
+    if (e.key === ' ') {
         if (art) {
             art.toggle();
             showShortcutHint('播放/暂停', 'play');
