@@ -551,7 +551,6 @@ body {
 .filter-disabled > * {
     opacity: 1; /* 提高子元素不透明度，保证可见性 */
     z-index: 6; /* 确保内容在遮罩上方 */
-    position: relative;
 }
 
 /* 改进过滤器禁用状态下的描述样式 */
@@ -930,4 +929,101 @@ body {
 #toast.hidden {
     opacity: 0;
     transform: translateX(-50%) translateY(-100%);
+}
+
+/* 详情模态框样式优化 */
+#modal .modal-detail-info {
+    background: linear-gradient(135deg, #0a0a0a, #111);
+    border: 1px solid #222;
+    border-radius: 8px;
+    padding: 1rem;
+    margin-bottom: 1.5rem;
+}
+
+#modal .detail-grid {
+    display: grid;
+    grid-template-columns: 1fr;
+    gap: 0.75rem;
+    font-size: 0.875rem;
+}
+
+@media (min-width: 768px) {
+    #modal .detail-grid {
+        grid-template-columns: 1fr 1fr;
+    }
+}
+
+#modal .detail-item {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.5rem;
+}
+
+#modal .detail-label {
+    color: #9ca3af;
+    font-weight: 500;
+    min-width: 3rem;
+    flex-shrink: 0;
+}
+
+#modal .detail-value {
+    color: white;
+    flex: 1;
+    word-break: break-word;
+}
+
+#modal .detail-desc {
+    margin-top: 1rem;
+    padding-top: 1rem;
+    border-top: 1px solid #333;
+}
+
+#modal .detail-desc-content {
+    color: #d1d5db;
+    font-size: 0.875rem;
+    line-height: 1.6;
+    max-height: 8rem;
+    overflow-y: auto;
+    scrollbar-width: thin;
+    scrollbar-color: #444 #222;
+}
+
+#modal .detail-desc-content::-webkit-scrollbar {
+    width: 6px;
+}
+
+#modal .detail-desc-content::-webkit-scrollbar-track {
+    background: #222;
+    border-radius: 4px;
+}
+
+#modal .detail-desc-content::-webkit-scrollbar-thumb {
+    background-color: #444;
+    border-radius: 4px;
+}
+
+/* 集数统计信息样式 */
+#modal .episode-stats {
+    color: #9ca3af;
+    font-size: 0.875rem;
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+}
+
+/* 移动端优化 */
+@media (max-width: 640px) {
+    #modal .detail-grid {
+        gap: 0.5rem;
+        font-size: 0.8rem;
+    }
+    
+    #modal .detail-label {
+        min-width: 2.5rem;
+    }
+    
+    #modal .detail-desc-content {
+        max-height: 6rem;
+        font-size: 0.8rem;
+    }
 }

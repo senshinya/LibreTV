@@ -393,7 +393,7 @@ function loadViewingHistory() {
             '未知来源';
             
         const episodeText = item.episodeIndex !== undefined ? 
-            `第${item.episodeIndex + 1}集` : '';
+            `${item.episodeIndex + 1}` : '';
         
         // 格式化进度信息
         let progressHtml = '';
