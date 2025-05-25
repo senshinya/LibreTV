@@ -450,7 +450,7 @@ function initPlayer(videoUrl) {
         playbackRate: true,
         aspectRatio: false,
         fullscreen: true,
-        fullscreenWeb: false,
+        fullscreenWeb: true,
         subtitleOffset: false,
         miniProgressBar: true,
         mutex: true,
