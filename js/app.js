@@ -1,5 +1,5 @@
 // 全局变量
-let selectedAPIs = Object.keys(API_SITES); // 默认选中黑木耳和豆瓣资源
+let selectedAPIs = localStorage.getItem('selectedAPIs') ? JSON.parse(localStorage.getItem('selectedAPIs')) : Object.keys(API_SITES); // 默认选中黑木耳和豆瓣资源
 let customAPIs = JSON.parse(localStorage.getItem('customAPIs') || '[]'); // 存储自定义API列表
 
 // 添加当前播放的集数索引
