@@ -1,10 +1,19 @@
-version: '3'
 services:
   libretv:
     image: bestzwei/libretv:latest
     container_name: libretv
     ports:
-      - "8899:80"
+      - "8899:8080"
     environment:
       - PASSWORD=${PASSWORD:-111111}
+    volumes:
+      - libretv_data:/app
     restart: unless-stopped
+
+volumes:
+  libretv_data:
+    driver: local
+    driver_opts:
+      type: none
+      o: bind
+      device: ${PWD:-.}/data
