@@ -1468,7 +1468,7 @@ function renderResourceInfoBar() {
         <span>加载中...</span>
         <span class="resource-info-bar-videos">-</span>
       </div>
-      <button class="resource-switch-btn flex" id="switchResourceBtn">
+      <button class="resource-switch-btn flex" id="switchResourceBtn" onclick="showSwitchResourceModal()">
         <span class="resource-switch-icon">
           <svg viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg"><path d="M12 4v16m0 0l-6-6m6 6l6-6" stroke="#a67c2d" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>
         </span>
@@ -1494,11 +1494,25 @@ function renderResourceInfoBar() {
         <span>${resourceName}</span>
         <span class="resource-info-bar-videos">${currentEpisodes.length} 个视频</span>
       </div>
-      <button class="resource-switch-btn flex" id="switchResourceBtn">
+      <button class="resource-switch-btn flex" id="switchResourceBtn" onclick="showSwitchResourceModal()">
         <span class="resource-switch-icon">
           <svg viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg"><path d="M12 4v16m0 0l-6-6m6 6l6-6" stroke="#a67c2d" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>
         </span>
         切换资源
       </button>
     `;
+}
+
+function showSwitchResourceModal() {
+    const modal = document.getElementById('modal');
+    const modalTitle = document.getElementById('modalTitle');
+    const modalContent = document.getElementById('modalContent');
+
+    modalTitle.innerHTML = `<span class="break-words">${currentVideoTitle}</span>`;
+    modalContent.innerHTML = '<div style="text-align:center;padding:20px;color:#aaa;grid-column:1/-1;">正在加载资源列表...</div>';
+    modal.classList.remove('hidden');
+
+    // 搜索
+    const selectedAPIs = JSON.parse(localStorage.getItem('selectedAPIs') || '[]');
+    console.log(selectedAPIs)
 }

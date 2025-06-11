@@ -322,6 +322,20 @@
         </div>
     </footer>
 
+    <!-- 换源模态框 -->
+    <div id="modal" class="fixed inset-0 bg-black/60 hidden flex items-center justify-center transition-opacity duration-300 z-[10000]">
+        <div class="bg-[#111] p-8 rounded-lg w-11/12 max-w-4xl border border-[#333] max-h-[90vh] flex flex-col">
+            <div class="flex justify-between items-center mb-6 flex-none">
+                <h2 id="modalTitle" class="text-2xl font-bold gradient-text break-words pr-4 max-w-[80%]"></h2>
+                <button onclick="closeModal()" class="text-gray-400 hover:text-white text-2xl transition-colors flex-shrink-0">&times;</button>
+            </div>
+            <div id="modalContent" class="overflow-auto flex-1 min-h-0">
+                <div class="grid grid-cols-2 sm:grid-cols-4 md:grid-cols-6 lg:grid-cols-8 gap-2">
+                </div>
+            </div>
+        </div>
+    </div>
+
     <!-- 引入纯 JS sha256（HTTP 下依然可用） -->
     <script src="libs/sha256.min.js"></script>
     <script>
