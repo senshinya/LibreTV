@@ -1546,10 +1546,26 @@ async function showSwitchResourceModal() {
         allResults[opt.key] = result;
     }));
 
+    // 对结果进行排序
+    const sortedResults = Object.entries(allResults).sort(([keyA, resultA], [keyB, resultB]) => {
+        // 当前播放的源放在最前面
+        const isCurrentA = String(keyA) === String(currentSourceCode) && String(resultA.vod_id) === String(currentVideoId);
+        const isCurrentB = String(keyB) === String(currentSourceCode) && String(resultB.vod_id) === String(currentVideoId);
+        
+        if (isCurrentA && !isCurrentB) return -1;
+        if (!isCurrentA && isCurrentB) return 1;
+        
+        // 其余按照 selectedAPIs 的顺序排列
+        const indexA = selectedAPIs.indexOf(keyA);
+        const indexB = selectedAPIs.indexOf(keyB);
+        
+        return indexA - indexB;
+    });
+
     // 渲染资源列表
     let html = '<div class="grid grid-cols-3 sm:grid-cols-4 md:grid-cols-5 lg:grid-cols-6 gap-3 p-4">';
     
-    for (const [sourceKey, result] of Object.entries(allResults)) {
+    for (const [sourceKey, result] of sortedResults) {
         if (!result) continue;
         
         // 修复 isCurrentSource 判断，确保类型一致
@@ -1650,6 +1666,7 @@ async function switchToResource(sourceKey, vodId) {
             localStorage.setItem('currentEpisodeIndex', targetIndex);
             localStorage.setItem('currentSourceCode', sourceKey);
             localStorage.setItem('lastPlayTime', Date.now());
+            localStorage.setItem('lastSearchPage', '');
         } catch (e) {
             console.error('保存播放状态失败:', e);
         }
