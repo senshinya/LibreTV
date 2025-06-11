@@ -1507,6 +1507,7 @@ function renderResourceInfoBar() {
 }
 
 async function showSwitchResourceModal() {
+    const urlParams = new URLSearchParams(window.location.search);
     const currentSourceCode = urlParams.get('source');
     const currentVideoId = urlParams.get('id');
 
