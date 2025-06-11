@@ -1506,7 +1506,7 @@ function renderResourceInfoBar() {
     `;
 }
 
-function showSwitchResourceModal() {
+async function showSwitchResourceModal() {
     const modal = document.getElementById('modal');
     const modalTitle = document.getElementById('modalTitle');
     const modalContent = document.getElementById('modalContent');
@@ -1527,9 +1527,10 @@ function showSwitchResourceModal() {
         return { key: curr, name: '未知资源' };
     });
     let allResults = {};
-    resourceOptions.forEach(async (opt) => {
+    await Promise.all(resourceOptions.map(async (opt) => {
         let queryResult = await searchByAPIAndKeyWord(opt.key, currentVideoTitle);
-        allResults[opt.key] = queryResult
-    });
-    console.log(allResults)
+        allResults[opt.key] = queryResult;
+    }));
+
+    console.log(allResults);
 }
