@@ -1547,13 +1547,13 @@ async function showSwitchResourceModal() {
     }));
 
     // 渲染资源列表
-    let html = '<div class="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-4 p-4">';
+    let html = '<div class="grid grid-cols-3 sm:grid-cols-4 md:grid-cols-5 lg:grid-cols-6 gap-3 p-4">';
     
     for (const [sourceKey, result] of Object.entries(allResults)) {
         if (!result) continue;
         
-        const isCurrentSource = sourceKey === currentSourceCode && result.vod_id === currentVideoId;
-        console.log(sourceKey, currentSourceCode, result.vod_id, currentVideoId);
+        // 修复 isCurrentSource 判断，确保类型一致
+        const isCurrentSource = String(sourceKey) === String(currentSourceCode) && String(result.vod_id) === String(currentVideoId);
         const sourceName = resourceOptions.find(opt => opt.key === sourceKey)?.name || '未知资源';
         
         html += `
@@ -1565,13 +1565,13 @@ async function showSwitchResourceModal() {
                          class="w-full h-full object-cover"
                          onerror="this.src='data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHZpZXdCb3g9IjAgMCAyNCAyNCIgZmlsbD0ibm9uZSIgc3Ryb2tlPSIjNjY2IiBzdHJva2Utd2lkdGg9IjIiIHN0cm9rZS1saW5lY2FwPSJyb3VuZCIgc3Ryb2tlLWxpbmVqb2luPSJyb3VuZCI+PHJlY3QgeD0iMyIgeT0iMyIgd2lkdGg9IjE4IiBoZWlnaHQ9IjE4IiByeD0iMiIgcnk9IjIiPjwvcmVjdD48cGF0aCBkPSJNMjEgMTV2NGEyIDIgMCAwIDEtMiAySDVhMiAyIDAgMCAxLTItMnYtNCI+PC9wYXRoPjxwb2x5bGluZSBwb2ludHM9IjE3IDggMTIgMyA3IDgiPjwvcG9seWxpbmU+PHBhdGggZD0iTTEyIDN2MTIiPjwvcGF0aD48L3N2Zz4='">
                 </div>
-                <div class="mt-2">
-                    <div class="text-sm font-medium text-gray-200 truncate">${result.vod_name}</div>
-                    <div class="text-xs text-gray-400">${sourceName}</div>
+                <div class="mt-1">
+                    <div class="text-xs font-medium text-gray-200 truncate">${result.vod_name}</div>
+                    <div class="text-[10px] text-gray-400">${sourceName}</div>
                 </div>
                 ${isCurrentSource ? `
                     <div class="absolute inset-0 flex items-center justify-center">
-                        <div class="bg-black bg-opacity-50 rounded-lg px-3 py-1 text-sm text-white">
+                        <div class="bg-black bg-opacity-50 rounded-lg px-2 py-0.5 text-xs text-white">
                             当前播放
                         </div>
                     </div>
