@@ -7,62 +7,76 @@
 function isPasswordProtected() {
     // 检查页面上嵌入的环境变量
     const pwd = window.__ENV__ && window.__ENV__.PASSWORD;
-    // 只有当密码 hash 存在且为64位（SHA-256十六进制长度）才认为启用密码保护
-    return typeof pwd === 'string' && pwd.length === 64 && !/^0+$/.test(pwd);
-}
+    const adminPwd = window.__ENV__ && window.__ENV__.ADMINPASSWORD;
 
-/**
- * 检查用户是否已通过密码验证
- * 检查localStorage中的验证状态和时间戳是否有效，并确认密码哈希未更改
- */
-function isPasswordVerified() {
-    try {
-        // 如果没有设置密码保护，则视为已验证
-        if (!isPasswordProtected()) {
-            return true;
-        }
+    // 检查普通密码或管理员密码是否有效
+    const isPwdValid = typeof pwd === 'string' && pwd.length === 64 && !/^0+$/.test(pwd);
+    const isAdminPwdValid = typeof adminPwd === 'string' && adminPwd.length === 64 && !/^0+$/.test(adminPwd);
 
-        const verificationData = JSON.parse(localStorage.getItem(PASSWORD_CONFIG.localStorageKey) || '{}');
-        const { verified, timestamp, passwordHash } = verificationData;
-        
-        // 获取当前环境中的密码哈希
-        const currentHash = window.__ENV__ && window.__ENV__.PASSWORD;
-        
-        // 验证是否已验证、未过期，且密码哈希未更改
-        if (verified && timestamp && passwordHash === currentHash) {
-            const now = Date.now();
-            const expiry = timestamp + PASSWORD_CONFIG.verificationTTL;
-            return now < expiry;
-        }
-        
-        return false;
-    } catch (error) {
-        console.error('验证密码状态时出错:', error);
-        return false;
-    }
+    // 任意一个密码有效即认为启用了密码保护
+    return isPwdValid || isAdminPwdValid;
 }
 
 window.isPasswordProtected = isPasswordProtected;
-window.isPasswordVerified = isPasswordVerified;
 
 /**
  * 验证用户输入的密码是否正确（异步，使用SHA-256哈希）
  */
-async function verifyPassword(password) {
-    const correctHash = window.__ENV__ && window.__ENV__.PASSWORD;
-    if (!correctHash) return false;
-    const inputHash = await sha256(password);
-    const isValid = inputHash === correctHash;
-    if (isValid) {
-        const verificationData = {
-            verified: true,
-            timestamp: Date.now(),
-            passwordHash: correctHash // 保存当前密码的哈希值
-        };
-        localStorage.setItem(PASSWORD_CONFIG.localStorageKey, JSON.stringify(verificationData));
+// 统一验证函数
+async function verifyPassword(password, passwordType = 'PASSWORD') {
+    try {
+        const correctHash = window.__ENV__?.[passwordType];
+        if (!correctHash) return false;
+
+        const inputHash = await sha256(password);
+        const isValid = inputHash === correctHash;
+
+        if (isValid) {
+            const storageKey = passwordType === 'PASSWORD'
+                ? PASSWORD_CONFIG.localStorageKey
+                : PASSWORD_CONFIG.adminLocalStorageKey;
+
+            localStorage.setItem(storageKey, JSON.stringify({
+                verified: true,
+                timestamp: Date.now(),
+                passwordHash: correctHash
+            }));
+        }
+        return isValid;
+    } catch (error) {
+        console.error(`验证${passwordType}密码时出错:`, error);
+        return false;
     }
-    return isValid;
 }
+
+// 统一验证状态检查
+function isVerified(passwordType = 'PASSWORD') {
+    try {
+        if (!isPasswordProtected()) return true;
+
+        const storageKey = passwordType === 'PASSWORD'
+            ? PASSWORD_CONFIG.localStorageKey
+            : PASSWORD_CONFIG.adminLocalStorageKey;
+
+        const stored = localStorage.getItem(storageKey);
+        if (!stored) return false;
+
+        const { timestamp, passwordHash } = JSON.parse(stored);
+        const currentHash = window.__ENV__?.[passwordType];
+
+        return timestamp && passwordHash === currentHash &&
+            Date.now() - timestamp < PASSWORD_CONFIG.verificationTTL;
+    } catch (error) {
+        console.error(`检查${passwordType}验证状态时出错:`, error);
+        return false;
+    }
+}
+
+// 更新全局导出
+window.isPasswordProtected = isPasswordProtected;
+window.isPasswordVerified = () => isVerified('PASSWORD');
+window.isAdminVerified = () => isVerified('ADMINPASSWORD');
+window.verifyPassword = verifyPassword;
 
 // SHA-256实现，可用Web Crypto API
 async function sha256(message) {
@@ -89,7 +103,7 @@ function showPasswordModal() {
         document.getElementById('doubanArea').classList.add('hidden');
 
         passwordModal.style.display = 'flex';
-        
+
         // 确保输入框获取焦点
         setTimeout(() => {
             const passwordInput = document.getElementById('passwordInput');
@@ -160,32 +174,71 @@ async function handlePasswordSubmit() {
 /**
  * 初始化密码验证系统（需适配异步事件）
  */
+// 修改initPasswordProtection函数
 function initPasswordProtection() {
     if (!isPasswordProtected()) {
-        return; // 如果未设置密码保护，则不进行任何操作
+        return;
     }
     
-    // 如果未验证密码，则显示密码验证弹窗
-    if (!isPasswordVerified()) {
+    // 检查是否有普通密码
+    const hasNormalPassword = window.__ENV__?.PASSWORD && 
+                           window.__ENV__.PASSWORD.length === 64 && 
+                           !/^0+$/.test(window.__ENV__.PASSWORD);
+    
+    // 只有当设置了普通密码且未验证时才显示密码框
+    if (hasNormalPassword && !isPasswordVerified()) {
         showPasswordModal();
-        
-        // 设置密码提交按钮事件监听
-        const submitButton = document.getElementById('passwordSubmitBtn');
-        if (submitButton) {
-            submitButton.addEventListener('click', handlePasswordSubmit);
-        }
-        
-        // 设置密码输入框回车键监听
-        const passwordInput = document.getElementById('passwordInput');
-        if (passwordInput) {
-            passwordInput.addEventListener('keypress', function(e) {
-                if (e.key === 'Enter') {
-                    handlePasswordSubmit();
-                }
-            });
-        }
+    }
+    
+    // 设置按钮事件监听
+    const settingsBtn = document.querySelector('[onclick="toggleSettings(event)"]');
+    if (settingsBtn) {
+        settingsBtn.addEventListener('click', function(e) {
+            // 只有当设置了普通密码且未验证时才拦截点击
+            if (hasNormalPassword && !isPasswordVerified()) {
+                e.preventDefault();
+                e.stopPropagation();
+                showPasswordModal();
+                return;
+            }
+            
+        });
+    }
+}
+
+// 设置按钮密码框验证
+function showAdminPasswordModal() {
+    const passwordModal = document.getElementById('passwordModal');
+    if (!passwordModal) return;
+
+    // 清空密码输入框
+    const passwordInput = document.getElementById('passwordInput');
+    if (passwordInput) passwordInput.value = '';
+
+    // 修改标题为管理员验证
+    const title = passwordModal.querySelector('h2');
+    if (title) title.textContent = '管理员验证';
+    passwordModal.style.display = 'flex';
+
+    // 设置表单提交处理
+    const form = document.getElementById('passwordForm');
+    if (form) {
+        form.onsubmit = async function (e) {
+            e.preventDefault();
+            const password = document.getElementById('passwordInput').value.trim();
+            if (await verifyPassword(password, 'ADMINPASSWORD')) {
+                passwordModal.style.display = 'none';
+                document.getElementById('settingsPanel').classList.add('show');
+            } else {
+                showPasswordError();
+            }
+        };
     }
 }
 
 // 在页面加载完成后初始化密码保护
-document.addEventListener('DOMContentLoaded', initPasswordProtection);
+document.addEventListener('DOMContentLoaded', function () {
+    initPasswordProtection();
+});
+
+

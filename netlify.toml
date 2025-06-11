@@ -5,6 +5,11 @@
   # publish = "." # 假设你的 HTML/CSS/JS 文件在根目录
   functions = "netlify/functions" # 指定 Netlify 函数目录
 
+# 配置 Edge Functions
+[[edge_functions]]
+  function = "inject-env"
+  path = "/*"
+
 # 配置重写规则，将 /proxy/* 的请求路由到 proxy 函数
 # 这样前端的 PROXY_URL 仍然可以是 '/proxy/'
 [[redirects]]
