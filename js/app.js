@@ -616,9 +616,9 @@ async function search() {
         
         // 从所有选中的API源搜索
         let allResults = [];
-        const searchPromises = selectedAPIs.map(async (apiId) => {
-            await searchByAPIAndKeyWord(apiId, query)
-        });
+        const searchPromises = selectedAPIs.map(apiId => 
+            searchByAPIAndKeyWord(apiId, query)
+        );
         
         // 等待所有搜索请求完成
         const resultsArray = await Promise.all(searchPromises);
