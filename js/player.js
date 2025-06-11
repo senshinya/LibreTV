@@ -1461,7 +1461,6 @@ function renderResourceInfoBar() {
     // 获取当前视频 source_code
     const urlParams = new URLSearchParams(window.location.search);
     const currentSource = urlParams.get('source') || '';
-    const title = urlParams.get('title') || document.getElementById('videoTitle')?.textContent || '';
     
     // 显示临时加载状态
     container.innerHTML = `
@@ -1490,11 +1489,10 @@ function renderResourceInfoBar() {
         }
     }
 
-    let videoCount = window.currentEpisodes && window.currentEpisodes.length ? window.currentEpisodes.length : 0;
     container.innerHTML = `
       <div class="resource-info-bar-left flex">
         <span>${resourceName}</span>
-        <span class="resource-info-bar-videos">${videoCount} 个视频</span>
+        <span class="resource-info-bar-videos">${currentEpisodes.length} 个视频</span>
       </div>
       <button class="resource-switch-btn flex" id="switchResourceBtn">
         <span class="resource-switch-icon">
