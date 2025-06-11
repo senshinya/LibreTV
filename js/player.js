@@ -1666,7 +1666,6 @@ async function switchToResource(sourceKey, vodId) {
             localStorage.setItem('currentEpisodeIndex', targetIndex);
             localStorage.setItem('currentSourceCode', sourceKey);
             localStorage.setItem('lastPlayTime', Date.now());
-            localStorage.setItem('lastSearchPage', '');
         } catch (e) {
             console.error('保存播放状态失败:', e);
         }
