@@ -99,7 +99,7 @@ document.addEventListener('DOMContentLoaded', function () {
     // 先检查用户是否已通过密码验证
     if (!isPasswordVerified()) {
         // 隐藏加载提示
-        document.getElementById('loading').style.display = 'none';
+        document.getElementById('player-loading').style.display = 'none';
         return;
     }
 
@@ -108,7 +108,7 @@ document.addEventListener('DOMContentLoaded', function () {
 
 // 监听密码验证成功事件
 document.addEventListener('passwordVerified', () => {
-    document.getElementById('loading').style.display = 'block';
+    document.getElementById('player-loading').style.display = 'block';
 
     initializePageContent();
 });
@@ -497,7 +497,7 @@ function initPlayer(videoUrl) {
                 // 监听视频播放事件
                 video.addEventListener('playing', function () {
                     playbackStarted = true;
-                    document.getElementById('loading').style.display = 'none';
+                    document.getElementById('player-loading').style.display = 'none';
                     document.getElementById('error').style.display = 'none';
                 });
 
@@ -572,12 +572,12 @@ function initPlayer(videoUrl) {
 
                 // 监听分段加载事件
                 hls.on(Hls.Events.FRAG_LOADED, function () {
-                    document.getElementById('loading').style.display = 'none';
+                    document.getElementById('player-loading').style.display = 'none';
                 });
 
                 // 监听级别加载事件
                 hls.on(Hls.Events.LEVEL_LOADED, function () {
-                    document.getElementById('loading').style.display = 'none';
+                    document.getElementById('player-loading').style.display = 'none';
                 });
             }
         }
@@ -671,7 +671,7 @@ function initPlayer(videoUrl) {
     });
 
     art.on('video:loadedmetadata', function() {
-        document.getElementById('loading').style.display = 'none';
+        document.getElementById('player-loading').style.display = 'none';
         videoHasEnded = false; // 视频加载时重置结束标志
         // 优先使用URL传递的position参数
         const urlParams = new URLSearchParams(window.location.search);
@@ -720,7 +720,7 @@ function initPlayer(videoUrl) {
         }
 
         // 隐藏所有加载指示器
-        const loadingElements = document.querySelectorAll('#loading, .player-loading-container');
+        const loadingElements = document.querySelectorAll('#player-loading, .player-loading-container');
         loadingElements.forEach(el => {
             if (el) el.style.display = 'none';
         });
@@ -768,7 +768,7 @@ function initPlayer(videoUrl) {
             return;
         }
 
-        const loadingElement = document.getElementById('loading');
+        const loadingElement = document.getElementById('player-loading');
         if (loadingElement && loadingElement.style.display !== 'none') {
             loadingElement.innerHTML = `
                 <div class="loading-spinner"></div>
@@ -830,7 +830,7 @@ function showError(message) {
     if (art && art.video && art.video.currentTime > 1) {
         return;
     }
-    const loadingEl = document.getElementById('loading');
+    const loadingEl = document.getElementById('player-loading');
     if (loadingEl) loadingEl.style.display = 'none';
     const errorEl = document.getElementById('error');
     if (errorEl) errorEl.style.display = 'flex';
@@ -926,8 +926,8 @@ function playEpisode(index) {
     // 首先隐藏之前可能显示的错误
     document.getElementById('error').style.display = 'none';
     // 显示加载指示器
-    document.getElementById('loading').style.display = 'flex';
-    document.getElementById('loading').innerHTML = `
+    document.getElementById('player-loading').style.display = 'flex';
+    document.getElementById('player-loading').innerHTML = `
         <div class="loading-spinner"></div>
         <div>正在加载视频...</div>
     `;
@@ -1553,6 +1553,7 @@ async function showSwitchResourceModal() {
         if (!result) continue;
         
         const isCurrentSource = sourceKey === currentSourceCode && result.vod_id === currentVideoId;
+        console.log(sourceKey, currentSourceCode, result.vod_id, currentVideoId);
         const sourceName = resourceOptions.find(opt => opt.key === sourceKey)?.name || '未知资源';
         
         html += `
@@ -1644,13 +1645,11 @@ async function switchToResource(sourceKey, vodId) {
         
         // 保存当前状态到localStorage
         try {
-            localStorage.setItem('currentVideoTitle', data || '未知视频');
-            localStorage.setItem('currentEpisodes', JSON.stringify(currentEpisodes));
-            localStorage.setItem('currentEpisodeIndex', episodeIndex);
-            localStorage.setItem('currentSourceCode', sourceCode || '');
+            localStorage.setItem('currentVideoTitle', data.vod_name || '未知视频');
+            localStorage.setItem('currentEpisodes', JSON.stringify(data.episodes));
+            localStorage.setItem('currentEpisodeIndex', targetIndex);
+            localStorage.setItem('currentSourceCode', sourceKey);
             localStorage.setItem('lastPlayTime', Date.now());
-            localStorage.setItem('lastSearchPage', currentPath);
-            localStorage.setItem('lastPageUrl', currentPath);  // 确保保存返回页面URL
         } catch (e) {
             console.error('保存播放状态失败:', e);
         }
