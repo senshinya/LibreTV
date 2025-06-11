@@ -117,7 +117,7 @@ function initializePageContent() {
     const urlParams = new URLSearchParams(window.location.search);
     let videoUrl = urlParams.get('url');
     const title = urlParams.get('title');
-    const sourceCode = urlParams.get('source_code');
+    const sourceCode = urlParams.get('source');
     let index = parseInt(urlParams.get('index') || '0');
     const episodesList = urlParams.get('episodes'); // 从URL获取集数信息
     const savedPosition = parseInt(urlParams.get('position') || '0'); // 获取保存的播放位置
@@ -224,6 +224,9 @@ function initializePageContent() {
     } else {
         showError('无效的视频链接');
     }
+
+    // 渲染源信息
+    renderResourceInfoBar();
 
     // 更新集数信息
     updateEpisodeInfo();
@@ -1097,7 +1100,7 @@ function saveToHistory() {
     // 尝试从URL中获取参数
     const urlParams = new URLSearchParams(window.location.search);
     const sourceName = urlParams.get('source') || '';
-    const sourceCode = urlParams.get('source_code') || '';
+    const sourceCode = urlParams.get('source') || '';
     const id_from_params = urlParams.get('id'); // Get video ID from player URL (passed as 'id')
 
     // 获取当前播放进度
@@ -1445,4 +1448,59 @@ function closeEmbeddedPlayer() {
         console.error('尝试关闭嵌入式播放器失败:', e);
     }
     return false;
+}
+
+function renderResourceInfoBar() {
+    // 获取容器元素
+    const container = document.getElementById('resourceInfoBarContainer');
+    if (!container) {
+        console.error('找不到资源信息卡片容器');
+        return;
+    }
+    
+    // 获取当前视频 source_code
+    const urlParams = new URLSearchParams(window.location.search);
+    const currentSource = urlParams.get('source') || '';
+    const title = urlParams.get('title') || document.getElementById('videoTitle')?.textContent || '';
+    
+    // 显示临时加载状态
+    container.innerHTML = `
+      <div class="resource-info-bar-left">
+        <span>加载中...</span>
+        <span class="resource-info-bar-videos">-</span>
+      </div>
+      <button class="resource-switch-btn" id="switchResourceBtn">
+        <span class="resource-switch-icon">
+          <svg viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg"><path d="M12 4v16m0 0l-6-6m6 6l6-6" stroke="#a67c2d" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>
+        </span>
+        切换资源
+      </button>
+    `;
+
+    // 查找当前源名称，从 API_SITES 和 custom_api 中查找即可
+    let resourceName = currentSource
+    if (currentSource && API_SITES[currentSource]) {
+        resourceName = API_SITES[currentSource].name;
+    }
+    if (resourceName === currentSource) {
+        const customAPIs = JSON.parse(localStorage.getItem('customAPIs') || '[]');
+        const customIndex = parseInt(currentSource.replace('custom_', ''), 10);
+        if (customAPIs[customIndex]) {
+            resourceName = customAPIs[customIndex].name || '自定义资源';
+        }
+    }
+
+    let videoCount = window.currentEpisodes && window.currentEpisodes.length ? window.currentEpisodes.length : 0;
+    container.innerHTML = `
+      <div class="resource-info-bar-left">
+        <span>${resourceName}</span>
+        <span class="resource-info-bar-videos">${videoCount} 个视频</span>
+      </div>
+      <button class="resource-switch-btn" id="switchResourceBtn">
+        <span class="resource-switch-icon">
+          <svg viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg"><path d="M12 4v16m0 0l-6-6m6 6l6-6" stroke="#a67c2d" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>
+        </span>
+        切换资源
+      </button>
+    `;
 }

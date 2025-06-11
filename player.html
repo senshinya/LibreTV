@@ -187,7 +187,7 @@
 
     <main class="container mx-auto px-4 py-4">
         <!-- 视频播放区 -->
-        <div id="playerContainer" class="player-container">
+        <div id="playerContainer" class="player-container mb-4">
             <div class="relative">
                 <div id="player" class="player-placeholder" style="width: 100%; height: auto; aspect-ratio: 16/9; background-color: #1f2937; position: relative; display: block;">
                     <!-- Initial loading state before JavaScript loads -->
@@ -206,6 +206,11 @@
                     <div style="margin-top: 10px; font-size: 14px; color: #aaa;">请尝试其他视频源或稍后重试</div>
                 </div>
             </div>
+        </div>
+
+        <!-- 源信息 -->
+        <div class="player-container mb-2" id="resourceInfoBarContainer">
+            <!-- 资源信息卡片、切换按钮、视频数将由JS动态渲染 -->
         </div>
 
         <!-- 集数导航 -->

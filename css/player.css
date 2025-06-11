@@ -166,6 +166,60 @@ input:checked + .slider:before {
     width: 100%; height: 100%;
 }
 
+/* 资源信息卡片区 */
+#resourceInfoBarContainer {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    background: linear-gradient(135deg, #232a36 60%, #1c2939 100%);
+    border-radius: 0.5rem;
+    padding: 12px 20px; /* 调整内边距以匹配图片布局 */
+    margin-bottom: 18px;
+    box-shadow: 0 2px 8px rgba(0,0,0,0.2);
+  }
+  .resource-info-bar-left {
+    display: flex;
+    align-items: center;
+    font-size: 1.1rem; /* 调整字体大小 */
+    font-weight: bold;
+    color: #fff; /* 文字颜色改为白色 */
+    flex: 1;
+  }
+  .resource-info-bar-videos {
+    font-size: 1rem; /* 调整字体大小 */
+    font-weight: normal;
+    margin-left: 10px;
+    color: #ccc; /* 副文本颜色调亮 */
+  }
+  .resource-switch-btn {
+    display: flex;
+    align-items: center;
+    background: none; /* 移除背景 */
+    border: none; /* 移除边框 */
+    color: #a67c2d; /* 恢复原图标颜色 */
+    font-weight: bold;
+    font-size: 1rem;
+    cursor: pointer;
+    gap: 6px;
+    padding: 6px 12px;
+    border-radius: 0.5rem;
+    transition: background 0.2s;
+  }
+  .resource-switch-btn:hover {
+    background: #f5e9d7; /* 调整悬停背景色 */
+  }
+  .resource-switch-btn:active {
+    background: #f5e9d7; /* 调整点击背景色 */
+  }
+  .resource-switch-icon {
+    width: 20px;
+    height: 20px;
+    margin-right: 0; /* 使用gap控制间距 */
+    color: #a67c2d; /* 恢复原图标颜色 */
+    vertical-align: middle;
+    transition: transform 0.3s;
+  }
+
 /* 新增：移动端响应式样式 */
 @media (max-width: 640px) {
     .episode-grid {
