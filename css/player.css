@@ -193,36 +193,41 @@ input:checked + .slider:before {
 }
 
 .resource-switch-btn {
-    display: flex;
     align-items: center;
-    gap: 0.5rem;
-    padding: 0.5rem 1rem;
-    background: #222;
-    border: 1px solid #333;
-    border-radius: 0.5rem;
-    color: #fff;
-    font-size: 0.875rem;
-    transition: all 0.2s ease;
+    background: none;
+    /* 移除背景 */
+    border: none;
+    /* 移除边框 */
+    color: #a67c2d;
+    /* 恢复原图标颜色 */
+    font-weight: bold;
+    font-size: 1rem;
     cursor: pointer;
-    white-space: nowrap;
+    gap: 6px;
+    padding: 6px 12px;
+    border-radius: 0.5rem;
+    transition: background 0.2s;
 }
 
 .resource-switch-btn:hover {
-    background: #333;
-    border-color: #444;
+    background: #f5e9d7;
+    /* 调整悬停背景色 */
 }
 
 .resource-switch-btn:active {
-    background: #2a2a2a;
+    background: #f5e9d7;
+    /* 调整点击背景色 */
 }
 
 .resource-switch-icon {
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    width: 1.25rem;
-    height: 1.25rem;
+    width: 20px;
+    height: 20px;
+    margin-right: 0;
+    /* 使用gap控制间距 */
     color: #a67c2d;
+    /* 恢复原图标颜色 */
+    vertical-align: middle;
+    transition: transform 0.3s;
 }
 
 /* 新增：移动端响应式样式 */
@@ -240,15 +245,5 @@ input:checked + .slider:before {
     /* 控制栏在小屏幕上可能需要换行 */
     .player-container .flex-wrap {
         margin-bottom: 4px;
-    }
-
-    .resource-switch-btn {
-        padding: 0.375rem 0.75rem;
-        font-size: 0.8125rem;
-    }
-    
-    .resource-switch-icon {
-        width: 1rem;
-        height: 1rem;
     }
 }
