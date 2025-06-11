@@ -1,3 +1,6 @@
+const selectedAPIs = JSON.parse(localStorage.getItem('selectedAPIs') || '[]');
+const customAPIs = JSON.parse(localStorage.getItem('customAPIs') || '[]'); // 存储自定义API列表
+
 // 改进返回功能
 function goBack(event) {
     // 防止默认链接行为
@@ -1513,6 +1516,20 @@ function showSwitchResourceModal() {
     modal.classList.remove('hidden');
 
     // 搜索
-    const selectedAPIs = JSON.parse(localStorage.getItem('selectedAPIs') || '[]');
-    console.log(selectedAPIs)
+    const resourceOptions = selectedAPIs.map((curr) => {
+        if (API_SITES[curr]) {
+            return { key: curr, name: API_SITES[curr].name };
+        }
+        const customIndex = parseInt(curr.replace('custom_', ''), 10);
+        if (customAPIs[customIndex]) {
+            return { key: curr, name: customAPIs[customIndex].name || '自定义资源' };
+        }
+        return { key: curr, name: '未知资源' };
+    });
+    let allResults = {};
+    resourceOptions.forEach(async (opt) => {
+        let queryResult = await searchByAPIAndKeyWord(opt.key, currentVideoTitle);
+        allResults[opt.key] = queryResult
+    });
+    console.log(allResults)
 }
