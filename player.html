@@ -336,6 +336,14 @@
         </div>
     </div>
 
+    <!-- 添加 loading 提示框 -->
+    <div id="loading" class="fixed inset-0 bg-black/80 hidden items-center justify-center z-[10001]">
+        <div class="bg-[#111] p-8 rounded-lg border border-[#333] flex items-center space-x-4">
+            <div class="w-8 h-8 border-4 border-white border-t-transparent rounded-full animate-spin"></div>
+            <p class="text-white text-lg">加载中...</p>
+        </div>
+    </div>
+
     <!-- 引入纯 JS sha256（HTTP 下依然可用） -->
     <script src="libs/sha256.min.js"></script>
     <script>
