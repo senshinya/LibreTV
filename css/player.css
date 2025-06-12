@@ -209,16 +209,6 @@ input:checked + .slider:before {
     transition: background 0.2s;
 }
 
-.resource-switch-btn:hover {
-    background: #f5e9d7;
-    /* 调整悬停背景色 */
-}
-
-.resource-switch-btn:active {
-    background: #f5e9d7;
-    /* 调整点击背景色 */
-}
-
 .resource-switch-icon {
     width: 20px;
     height: 20px;
