@@ -75,7 +75,7 @@ const API_SITES = {
         detail: 'https://jszyapi.com', 
     },
     dbzy: {
-        api: 'https://dbzy.com/api.php/provide/vod',
+        api: 'https://dbzy.tv/api.php/provide/vod',
         name: '豆瓣资源',
     },
     mozhua: {
