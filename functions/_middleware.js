@@ -1,30 +1,31 @@
-import { sha256 } from '../js/sha256.js'; // 需新建或引入SHA-256实现
+import { sha256 } from '../js/sha256.js';
 
-// Cloudflare Pages Middleware to inject environment variables
 export async function onRequest(context) {
   const { request, env, next } = context;
-  
-  // Proceed to the next middleware or route handler
   const response = await next();
-  
-  // Check if the response is HTML
   const contentType = response.headers.get("content-type") || "";
   
   if (contentType.includes("text/html")) {
-    // Get the original HTML content
     let html = await response.text();
     
-    // Replace the placeholder with actual environment variable value
-    // If PASSWORD is not set, replace with empty string
+    // 处理普通密码
     const password = env.PASSWORD || "";
     let passwordHash = "";
     if (password) {
       passwordHash = await sha256(password);
     }
     html = html.replace('window.__ENV__.PASSWORD = "{{PASSWORD}}";', 
-                        `window.__ENV__.PASSWORD = "${passwordHash}"; // SHA-256 hash`);
+      `window.__ENV__.PASSWORD = "${passwordHash}";`);
+
+    // 处理管理员密码 - 确保这部分代码被执行
+    const adminPassword = env.ADMINPASSWORD || "";
+    let adminPasswordHash = "";
+    if (adminPassword) {
+      adminPasswordHash = await sha256(adminPassword);
+    }
+    html = html.replace('window.__ENV__.ADMINPASSWORD = "{{ADMINPASSWORD}}";',
+      `window.__ENV__.ADMINPASSWORD = "${adminPasswordHash}";`);
     
-    // Create a new response with the modified HTML
     return new Response(html, {
       headers: response.headers,
       status: response.status,
@@ -32,6 +33,5 @@ export async function onRequest(context) {
     });
   }
   
-  // Return the original response for non-HTML content
   return response;
 }

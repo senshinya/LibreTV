@@ -166,17 +166,72 @@ input:checked + .slider:before {
     width: 100%; height: 100%;
 }
 
+/* 资源信息卡片区 */
+#resourceInfoBarContainer {
+    align-items: center;
+    border-radius: 0.5rem;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.2);
+}
+
+.resource-info-bar-left {
+    align-items: center;
+    font-size: 1.1rem;
+    /* 调整字体大小 */
+    font-weight: bold;
+    color: #fff;
+    /* 文字颜色改为白色 */
+    flex: 1;
+}
+
+.resource-info-bar-videos {
+    font-size: 1rem;
+    /* 调整字体大小 */
+    font-weight: normal;
+    margin-left: 10px;
+    color: #ccc;
+    /* 副文本颜色调亮 */
+}
+
+.resource-switch-btn {
+    align-items: center;
+    background: none;
+    /* 移除背景 */
+    border: none;
+    /* 移除边框 */
+    color: #a67c2d;
+    /* 恢复原图标颜色 */
+    font-weight: bold;
+    font-size: 1rem;
+    cursor: pointer;
+    gap: 6px;
+    padding: 6px 12px;
+    border-radius: 0.5rem;
+    transition: background 0.2s;
+}
+
+.resource-switch-icon {
+    width: 20px;
+    height: 20px;
+    margin-right: 0;
+    /* 使用gap控制间距 */
+    color: #a67c2d;
+    /* 恢复原图标颜色 */
+    vertical-align: middle;
+    transition: transform 0.3s;
+}
+
 /* 新增：移动端响应式样式 */
 @media (max-width: 640px) {
     .episode-grid {
-        max-height: 40vh; /* 移动端增加集数列表高度 */
+        max-height: 40vh;
+        /* 移动端增加集数列表高度 */
     }
-    
+
     /* 改进移动端按钮显示 */
     button {
         white-space: nowrap;
     }
-    
+
     /* 控制栏在小屏幕上可能需要换行 */
     .player-container .flex-wrap {
         margin-bottom: 4px;

@@ -15,6 +15,7 @@ const __dirname = path.dirname(__filename);
 const config = {
   port: process.env.PORT || 8080,
   password: process.env.PASSWORD || '',
+  adminpassword: process.env.ADMINPASSWORD || '',
   corsOrigin: process.env.CORS_ORIGIN || '*',
   timeout: parseInt(process.env.REQUEST_TIMEOUT || '5000'),
   maxRetries: parseInt(process.env.MAX_RETRIES || '2'),
@@ -39,7 +40,7 @@ app.use(cors({
 
 app.use((req, res, next) => {
   res.setHeader('X-Content-Type-Options', 'nosniff');
-  res.setHeader('X-Frame-Options', 'DENY');
+  res.setHeader('X-Frame-Options', 'SAMEORIGIN');
   res.setHeader('X-XSS-Protection', '1; mode=block');
   next();
 });
@@ -58,6 +59,11 @@ async function renderPage(filePath, password) {
     const sha256 = await sha256Hash(password);
     content = content.replace('{{PASSWORD}}', sha256);
   }
+  // 添加ADMINPASSWORD注入
+  if (config.adminpassword !== '') {
+      const adminSha256 = await sha256Hash(config.adminpassword);
+      content = content.replace('{{ADMINPASSWORD}}', adminSha256);
+  } 
   return content;
 }
 
@@ -196,10 +202,13 @@ app.use((req, res) => {
 app.listen(config.port, () => {
   console.log(`服务器运行在 http://localhost:${config.port}`);
   if (config.password !== '') {
-    console.log('登录密码已设置');
+    console.log('用户登录密码已设置');
+  }
+  if (config.adminpassword !== '') {
+    console.log('管理员登录密码已设置');
   }
   if (config.debug) {
     console.log('调试模式已启用');
-    console.log('配置:', { ...config, password: config.password ? '******' : '' });
+    console.log('配置:', { ...config, password: config.password ? '******' : '', adminpassword: config.adminpassword? '******' : '' });
   }
 });

@@ -415,6 +415,7 @@
     <script src="js/api.js"></script>
     <script src="js/douban.js"></script>
     <script src="js/password.js"></script>
+    <script src="js/search.js"></script>
     <script src="js/app.js"></script>
 
     <!-- PWA 注册 -->
@@ -428,6 +429,7 @@
         // 注入服务器端环境变量 (将由服务器端替换)
         // PASSWORD 变量将在这里被服务器端注入
         window.__ENV__.PASSWORD = "{{PASSWORD}}";
+        window.__ENV__.ADMINPASSWORD = "{{ADMINPASSWORD}}";
     </script>
 
     <!-- 版本检测脚本 -->
