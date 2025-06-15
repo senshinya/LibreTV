@@ -1469,7 +1469,6 @@ function renderResourceInfoBar() {
     container.innerHTML = `
       <div class="resource-info-bar-left flex">
         <span>加载中...</span>
-        <span class="resource-info-bar-videos">-</span>
       </div>
       <button class="resource-switch-btn flex !bg-[#222] hover:!bg-[#333]" id="switchResourceBtn" onclick="showSwitchResourceModal()">
         <span class="resource-switch-icon">
@@ -1495,7 +1494,6 @@ function renderResourceInfoBar() {
     container.innerHTML = `
       <div class="resource-info-bar-left flex">
         <span>${resourceName}</span>
-        <span class="resource-info-bar-videos">${currentEpisodes.length} 个视频</span>
       </div>
       <button class="resource-switch-btn flex !bg-[#222] hover:!bg-[#333]" id="switchResourceBtn" onclick="showSwitchResourceModal()">
         <span class="resource-switch-icon">
