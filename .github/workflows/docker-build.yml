@@ -16,14 +16,22 @@ jobs:
     steps:
       - name: Check out repository
         uses: actions/checkout@v4
+      
+      - name: Read version from VERSION.txt
+        id: version
+        run: |
+          VERSION=$(cat VERSION.txt)
+          echo "VERSION=$VERSION" >> $GITHUB_OUTPUT
           
       - name: Set Docker image tag based on repository
         id: set-tag
         run: |
           if [ "${{ github.repository }}" = "LibreSpark/LibreTV" ]; then
-            echo "IMAGE_TAG=libretv:latest" >> $GITHUB_OUTPUT
+            echo "IMAGE_NAME=libretv" >> $GITHUB_OUTPUT
+            echo "TAGS=${{ secrets.DOCKER_USERNAME }}/libretv:latest,${{ secrets.DOCKER_USERNAME }}/libretv:${{ steps.version.outputs.VERSION }}" >> $GITHUB_OUTPUT
           else
-            echo "IMAGE_TAG=libretv-beta:latest" >> $GITHUB_OUTPUT
+            echo "IMAGE_NAME=libretv-beta" >> $GITHUB_OUTPUT
+            echo "TAGS=${{ secrets.DOCKER_USERNAME }}/libretv-beta:latest" >> $GITHUB_OUTPUT
           fi
 
       - name: Set up Docker QEMU
@@ -44,5 +52,5 @@ jobs:
           context: .
           file: Dockerfile
           push: true
-          tags: "${{ secrets.DOCKER_USERNAME }}/${{ steps.set-tag.outputs.IMAGE_TAG }}"
+          tags: ${{ steps.set-tag.outputs.TAGS }}
           platforms: linux/amd64,linux/arm64/v8,linux/arm/v7

@@ -183,15 +183,6 @@ input:checked + .slider:before {
     flex: 1;
 }
 
-.resource-info-bar-videos {
-    font-size: 1rem;
-    /* 调整字体大小 */
-    font-weight: normal;
-    margin-left: 10px;
-    color: #ccc;
-    /* 副文本颜色调亮 */
-}
-
 .resource-switch-btn {
     align-items: center;
     background: none;
