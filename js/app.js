@@ -657,6 +657,16 @@ async function search() {
             }
         });
 
+        // 对搜索结果进行排序：按名称优先，名称相同时按接口源排序
+        allResults.sort((a, b) => {
+            // 首先按照视频名称排序
+            const nameCompare = (a.vod_name || '').localeCompare(b.vod_name || '');
+            if (nameCompare !== 0) return nameCompare;
+            
+            // 如果名称相同，则按照来源排序
+            return (a.source_name || '').localeCompare(b.source_name || '');
+        });
+
         // 更新搜索结果计数
         const searchResultsCount = document.getElementById('searchResultsCount');
         if (searchResultsCount) {

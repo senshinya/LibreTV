@@ -8,7 +8,7 @@
 
 ## 📺 项目简介
 
-LibreTV 是一个轻量级、免费的在线视频搜索与观看平台，提供来自多个视频源的内容搜索与播放服务。无需注册，即开即用，支持多种设备访问。项目结合了前端技术和后端代理功能，可部署在支持服务端功能的各类网站托管服务上。
+LibreTV 是一个轻量级、免费的在线视频搜索与观看平台，提供来自多个视频源的内容搜索与播放服务。无需注册，即开即用，支持多种设备访问。项目结合了前端技术和后端代理功能，可部署在支持服务端功能的各类网站托管服务上。**项目门户**： [libretv.is-an.org](https://libretv.is-an.org)
 
 本项目基于 [bestK/tv](https://github.com/bestK/tv) 进行重构与增强。
 
@@ -87,6 +87,17 @@ Pull Bot 会反复触发无效的 PR 和垃圾邮件，严重干扰项目维护�
 5. **可选：在"Settings" > "Environment Variables"中添加 `ADMINPASSWORD` 变量**
 6. 点击"Deploy"
 7. 可选：在"Settings" > "Environment Variables"中配置密码保护和设置按钮密码保护
+
+### Render
+
+1. Fork 或克隆本仓库到您的 GitHub 账户
+2. 登录 [Render](https://render.com/)，点击 "New Web Service"
+3. 选择您的仓库，Render 会自动检测到 `render.yaml` 配置文件
+4. 保持默认设置（无需设置环境变量，默认不启用密码保护）
+5. 点击 "Create Web Service"，等待部署完成
+6. 部署成功后即可访问您的 LibreTV 实例
+
+> 如需启用密码保护，可在 Render 控制台的环境变量中手动添加 `PASSWORD` 和/或 `ADMINPASSWORD`。
 
 ### Docker
 ```
@@ -198,6 +209,10 @@ LibreTV 支持标准的苹果 CMS V10 API 格式。添加自定义 API 时需遵
 LibreTV 仅作为视频搜索工具，不存储、上传或分发任何视频内容。所有视频均来自第三方 API 接口提供的搜索结果。如有侵权内容，请联系相应的内容提供方。
 
 本项目开发者不对使用本项目产生的任何后果负责。使用本项目时，您必须遵守当地的法律法规。
+
+## 🎉 贡献者福利
+
+活跃贡献者可以在 [Issue #268](https://github.com/LibreSpark/LibreTV/issues/268) 中留言，申请免费上车 1Password Team，享受团队协作工具的便利！
 
 ## 💝 支持项目
 
