@@ -101,6 +101,7 @@ function showPasswordModal() {
     if (passwordModal) {
         // 防止出现豆瓣区域滚动条
         document.getElementById('doubanArea').classList.add('hidden');
+        document.getElementById('passwordCancelBtn').classList.add('hidden');
 
         passwordModal.style.display = 'flex';
 
@@ -120,6 +121,13 @@ function showPasswordModal() {
 function hidePasswordModal() {
     const passwordModal = document.getElementById('passwordModal');
     if (passwordModal) {
+        // 隐藏密码错误提示
+        hidePasswordError();
+
+        // 清空密码输入框
+        const passwordInput = document.getElementById('passwordInput');
+        if (passwordInput) passwordInput.value = '';
+
         passwordModal.style.display = 'none';
 
         // 如果启用豆瓣区域则显示豆瓣区域
@@ -157,7 +165,6 @@ async function handlePasswordSubmit() {
     const passwordInput = document.getElementById('passwordInput');
     const password = passwordInput ? passwordInput.value.trim() : '';
     if (await verifyPassword(password)) {
-        hidePasswordError();
         hidePasswordModal();
 
         // 触发密码验证成功事件
@@ -218,6 +225,8 @@ function showAdminPasswordModal() {
     // 修改标题为管理员验证
     const title = passwordModal.querySelector('h2');
     if (title) title.textContent = '管理员验证';
+
+    document.getElementById('passwordCancelBtn').classList.remove('hidden');
     passwordModal.style.display = 'flex';
 
     // 设置表单提交处理
