@@ -2,6 +2,7 @@
 
 import fetch from 'node-fetch';
 import { URL } from 'url'; // 使用 Node.js 内置 URL 处理
+import crypto from 'crypto'; // 导入 crypto 模块用于密码哈希
 
 // --- 配置 (从环境变量读取) ---
 const DEBUG_ENABLED = process.env.DEBUG === 'true';
@@ -299,6 +300,40 @@ async function processMasterPlaylist(url, content, recursionDepth) {
     return await processM3u8Content(bestVariantUrl, variantContent, recursionDepth + 1);
 }
 
+/**
+ * 验证代理请求的鉴权
+ */
+async function validateAuth(req) {
+    const authHash = req.query.auth;
+    const timestamp = req.query.t;
+    
+    // 获取服务器端密码哈希
+    const serverPassword = process.env.PASSWORD;
+    if (!serverPassword) {
+        console.error('服务器未设置 PASSWORD 环境变量，代理访问被拒绝');
+        return false;
+    }
+    
+    // 使用 crypto 模块计算 SHA-256 哈希
+    const serverPasswordHash = crypto.createHash('sha256').update(serverPassword).digest('hex');
+    
+    if (!authHash || authHash !== serverPasswordHash) {
+        console.warn('代理请求鉴权失败：密码哈希不匹配');
+        return false;
+    }
+    
+    // 验证时间戳（10分钟有效期）
+    if (timestamp) {
+        const now = Date.now();
+        const maxAge = 10 * 60 * 1000; // 10分钟
+        if (now - parseInt(timestamp) > maxAge) {
+            console.warn('代理请求鉴权失败：时间戳过期');
+            return false;
+        }
+    }
+    
+    return true;
+}
 
 // --- Vercel Handler 函数 ---
 export default async function handler(req, res) {
@@ -324,6 +359,17 @@ export default async function handler(req, res) {
     let targetUrl = null; // 初始化目标 URL
 
     try { // ---- 开始主处理逻辑的 try 块 ----
+
+        // --- 验证鉴权 ---
+        const isAuthorized = await validateAuth(req);
+        if (!isAuthorized) {
+            console.warn('代理请求鉴权失败');
+            res.status(401).json({
+                success: false,
+                error: '代理访问未授权：请检查密码配置或鉴权参数'
+            });
+            return;
+        }
 
         // --- 提取目标 URL (主要依赖 req.query["...path"]) ---
         // Vercel 将 :path* 捕获的内容（可能包含斜杠）放入 req.query["...path"] 数组

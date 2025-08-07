@@ -7,6 +7,7 @@
 // FILTER_DISCONTINUITY (不再需要，设为 false 或移除)
 // USER_AGENTS_JSON (例如 ["UA1", "UA2"]) - JSON 字符串数组
 // DEBUG (例如 false 或 true)
+// PASSWORD (例如 "your_password") - 鉴权密码
 // --- 配置结束 ---
 
 // --- 常量 (之前在 config.js 中，现在移到这里，因为它们与代理逻辑相关) ---
@@ -26,6 +27,23 @@ const MEDIA_CONTENT_TYPES = ['video/', 'audio/', 'image/'];
 export async function onRequest(context) {
     const { request, env, next, waitUntil } = context; // next 和 waitUntil 可能需要
     const url = new URL(request.url);
+
+    // 验证鉴权（主函数调用）
+    const isValidAuth = await validateAuth(request, env);
+    if (!isValidAuth) {
+        return new Response(JSON.stringify({
+            success: false,
+            error: '代理访问未授权：请检查密码配置或鉴权参数'
+        }), { 
+            status: 401,
+            headers: {
+                'Access-Control-Allow-Origin': '*',
+                'Access-Control-Allow-Methods': 'GET, HEAD, POST, OPTIONS',
+                'Access-Control-Allow-Headers': '*',
+                'Content-Type': 'application/json'
+            }
+        });
+    }
 
     // --- 从环境变量读取配置 ---
     const DEBUG_ENABLED = (env.DEBUG === 'true');
@@ -53,6 +71,62 @@ export async function onRequest(context) {
 
 
     // --- 辅助函数 ---
+
+    // 验证代理请求的鉴权
+    async function validateAuth(request, env) {
+        const url = new URL(request.url);
+        const authHash = url.searchParams.get('auth');
+        const timestamp = url.searchParams.get('t');
+        
+        // 获取服务器端密码
+        const serverPassword = env.PASSWORD;
+        if (!serverPassword) {
+            console.error('服务器未设置 PASSWORD 环境变量，代理访问被拒绝');
+            return false;
+        }
+        
+        // 使用 SHA-256 哈希算法（与其他平台保持一致）
+        // 在 Cloudflare Workers 中使用 crypto.subtle
+        try {
+            const encoder = new TextEncoder();
+            const data = encoder.encode(serverPassword);
+            const hashBuffer = await crypto.subtle.digest('SHA-256', data);
+            const hashArray = Array.from(new Uint8Array(hashBuffer));
+            const serverPasswordHash = hashArray.map(b => b.toString(16).padStart(2, '0')).join('');
+            
+            if (!authHash || authHash !== serverPasswordHash) {
+                console.warn('代理请求鉴权失败：密码哈希不匹配');
+                return false;
+            }
+        } catch (error) {
+            console.error('计算密码哈希失败:', error);
+            return false;
+        }
+        
+        // 验证时间戳（10分钟有效期）
+        if (timestamp) {
+            const now = Date.now();
+            const maxAge = 10 * 60 * 1000; // 10分钟
+            if (now - parseInt(timestamp) > maxAge) {
+                console.warn('代理请求鉴权失败：时间戳过期');
+                return false;
+            }
+        }
+        
+        return true;
+    }
+
+    // 验证鉴权（主函数调用）
+    if (!validateAuth(request, env)) {
+        return new Response('Unauthorized', { 
+            status: 401,
+            headers: {
+                'Access-Control-Allow-Origin': '*',
+                'Access-Control-Allow-Methods': 'GET, HEAD, POST, OPTIONS',
+                'Access-Control-Allow-Headers': '*'
+            }
+        });
+    }
 
     // 输出调试日志 (需要设置 DEBUG: true 环境变量)
     function logDebug(message) {
